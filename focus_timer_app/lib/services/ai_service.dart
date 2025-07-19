@@ -3,6 +3,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import '../data/models/ai_analysis.dart';
 import '../data/models/focus_pattern.dart';
 import '../core/constants/ai_prompts.dart';
+import '../core/constants/api_keys.dart';
 
 class AIService {
   static final AIService _instance = AIService._internal();
@@ -16,7 +17,7 @@ class AIService {
     if (_isInitialized) return;
 
     try {
-      final apiKey = 'AIzaSyDHjOEVUqgPWHOeywybTPZIV09-ZHE3DOw';
+      final apiKey = APIKeys.geminiApiKey;
       if (apiKey.isEmpty) {
         throw Exception('Gemini API key not found');
       }
