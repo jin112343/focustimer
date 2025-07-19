@@ -177,7 +177,7 @@ flutter build ios --release
 
 ## 作者
 
-- **Your Name** - *Initial work* - [YourGitHub](https://github.com/yourusername)
+- **jin mizoi** - *Initial work* - [YourGitHub](https://github.com/yourusername)
 
 ## 謝辞
 
