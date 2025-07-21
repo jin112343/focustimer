@@ -17,11 +17,22 @@ class CircularTimer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
+    final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
+    
+    // 画面サイズに応じたサイズ調整
+    final radius = isSmallScreen ? 80.0 : isMediumScreen ? 100.0 : 120.0;
+    final lineWidth = isSmallScreen ? 8.0 : isMediumScreen ? 10.0 : 12.0;
+    final timeFontSize = isSmallScreen ? 32.0 : isMediumScreen ? 40.0 : 48.0;
+    final sessionTypeFontSize = isSmallScreen ? 14.0 : isMediumScreen ? 16.0 : 18.0;
+    final centerSpacing = isSmallScreen ? 4.0 : 8.0;
+
     return Column(
       children: [
         CircularPercentIndicator(
-          radius: 120.0,
-          lineWidth: 12.0,
+          radius: radius,
+          lineWidth: lineWidth,
           percent: state.progressPercentage,
           center: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -29,16 +40,16 @@ class CircularTimer extends StatelessWidget {
               Text(
                 state.formattedTime,
                 style: GoogleFonts.robotoMono(
-                  fontSize: 48,
+                  fontSize: timeFontSize,
                   fontWeight: FontWeight.bold,
                   color: state.sessionColor,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: centerSpacing),
               Text(
                 state.sessionTypeText,
                 style: GoogleFonts.notoSans(
-                  fontSize: 18,
+                  fontSize: sessionTypeFontSize,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textColor,
                 ),

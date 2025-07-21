@@ -19,64 +19,93 @@ class TimerScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
-        child: Consumer2<TimerProvider, SettingsProvider>(
-          builder: (context, timerProvider, settingsProvider, child) {
-            final state = timerProvider.state;
-            final settings = settingsProvider.settings;
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth;
+            final screenHeight = constraints.maxHeight;
+            final isSmallScreen = screenWidth < 400;
+            final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
+            final isLargeScreen = screenWidth >= 600;
 
-            return Column(
-              children: [
-                // ヘッダー
-                _buildHeader(context, state),
-                
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // 円形タイマー
-                        CircularTimer(
-                          state: state,
-                          settings: settings,
-                        ),
-                        
-                        const SizedBox(height: 32),
-                        
-                        // ポモドーロカウンター
-                        if (settings.showPomodoroCounter)
-                          PomodoroCounter(
-                            completedPomodoros: state.completedPomodoros,
-                            totalPomodoros: 4,
+            return Consumer2<TimerProvider, SettingsProvider>(
+              builder: (context, timerProvider, settingsProvider, child) {
+                final state = timerProvider.state;
+                final settings = settingsProvider.settings;
+
+                return Column(
+                  children: [
+                    // ヘッダー
+                    _buildHeader(context, state, isSmallScreen),
+                    
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: screenHeight * 0.7,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // 円形タイマー
+                                SizedBox(
+                                  width: isSmallScreen 
+                                    ? screenWidth * 0.7 
+                                    : isMediumScreen 
+                                      ? screenWidth * 0.6 
+                                      : screenWidth * 0.5,
+                                  height: isSmallScreen 
+                                    ? screenWidth * 0.7 
+                                    : isMediumScreen 
+                                      ? screenWidth * 0.6 
+                                      : screenWidth * 0.5,
+                                  child: CircularTimer(
+                                    state: state,
+                                    settings: settings,
+                                  ),
+                                ),
+                                
+                                SizedBox(height: isSmallScreen ? 24 : 32),
+                                
+                                // ポモドーロカウンター
+                                if (settings.showPomodoroCounter)
+                                  PomodoroCounter(
+                                    completedPomodoros: state.completedPomodoros,
+                                    totalPomodoros: 4,
+                                  ),
+                                
+                                SizedBox(height: isSmallScreen ? 24 : 32),
+                                
+                                // AI提案カード
+                                if (settings.aiEnabled && settings.aiSuggestionsEnabled)
+                                  _buildAIInsightCard(context, isSmallScreen),
+                                
+                                SizedBox(height: isSmallScreen ? 24 : 32),
+                                
+                                // コントロールボタン
+                                ControlButtons(
+                                  state: state,
+                                  onStart: timerProvider.startTimer,
+                                  onPause: timerProvider.pauseTimer,
+                                  onResume: timerProvider.resumeTimer,
+                                  onReset: timerProvider.resetTimer,
+                                  onSkip: timerProvider.skipSession,
+                                ),
+                                
+                                SizedBox(height: isSmallScreen ? 32 : 48),
+                                
+                                // ナビゲーション
+                                _buildNavigation(context, isSmallScreen),
+                              ],
+                            ),
                           ),
-                        
-                        const SizedBox(height: 32),
-                        
-                        // AI提案カード
-                        if (settings.aiEnabled && settings.aiSuggestionsEnabled)
-                          _buildAIInsightCard(context),
-                        
-                        const SizedBox(height: 32),
-                        
-                        // コントロールボタン
-                        ControlButtons(
-                          state: state,
-                          onStart: timerProvider.startTimer,
-                          onPause: timerProvider.pauseTimer,
-                          onResume: timerProvider.resumeTimer,
-                          onReset: timerProvider.resetTimer,
-                          onSkip: timerProvider.skipSession,
                         ),
-                        
-                        const SizedBox(height: 48),
-                        
-                        // ナビゲーション
-                        _buildNavigation(context),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             );
           },
         ),
@@ -84,9 +113,9 @@ class TimerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, PomodoroState state) {
+  Widget _buildHeader(BuildContext context, PomodoroState state, bool isSmallScreen) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
         boxShadow: [
@@ -99,12 +128,12 @@ class TimerScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.psychology,
             color: Colors.white,
-            size: 24,
+            size: isSmallScreen ? 20 : 24,
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: isSmallScreen ? 8 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +141,7 @@ class TimerScreen extends StatelessWidget {
                 Text(
                   '🧠 Focus Timer AI',
                   style: GoogleFonts.notoSans(
-                    fontSize: 18,
+                    fontSize: isSmallScreen ? 16 : 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -120,7 +149,7 @@ class TimerScreen extends StatelessWidget {
                 Text(
                   'AI分析中 🔄',
                   style: GoogleFonts.notoSans(
-                    fontSize: 14,
+                    fontSize: isSmallScreen ? 12 : 14,
                     color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
@@ -128,7 +157,10 @@ class TimerScreen extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 8 : 12, 
+              vertical: isSmallScreen ? 4 : 6
+            ),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
@@ -136,7 +168,7 @@ class TimerScreen extends StatelessWidget {
             child: Text(
               state.statusText,
               style: GoogleFonts.notoSans(
-                fontSize: 12,
+                fontSize: isSmallScreen ? 10 : 12,
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
@@ -147,10 +179,10 @@ class TimerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAIInsightCard(BuildContext context) {
+  Widget _buildAIInsightCard(BuildContext context, bool isSmallScreen) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       decoration: BoxDecoration(
         color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -167,27 +199,27 @@ class TimerScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.lightbulb_outline,
                 color: AppColors.aiPrimaryColor,
-                size: 20,
+                size: isSmallScreen ? 18 : 20,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: isSmallScreen ? 6 : 8),
               Text(
                 'AI提案',
                 style: GoogleFonts.notoSans(
-                  fontSize: 16,
+                  fontSize: isSmallScreen ? 14 : 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textColor,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
             '今日は朝9時が最も集中できる時間です',
             style: GoogleFonts.notoSans(
-              fontSize: 14,
+              fontSize: isSmallScreen ? 12 : 14,
               color: AppColors.textColor.withValues(alpha: 0.8),
             ),
           ),
@@ -196,7 +228,7 @@ class TimerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNavigation(BuildContext context) {
+  Widget _buildNavigation(BuildContext context, bool isSmallScreen) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -204,6 +236,7 @@ class TimerScreen extends StatelessWidget {
           context,
           icon: Icons.bar_chart,
           label: '統計',
+          isSmallScreen: isSmallScreen,
           onTap: () {
             // TODO: 統計画面に遷移
           },
@@ -212,6 +245,7 @@ class TimerScreen extends StatelessWidget {
           context,
           icon: Icons.settings,
           label: '設定',
+          isSmallScreen: isSmallScreen,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -224,6 +258,7 @@ class TimerScreen extends StatelessWidget {
           context,
           icon: Icons.psychology,
           label: 'AI',
+          isSmallScreen: isSmallScreen,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -240,12 +275,16 @@ class TimerScreen extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
+    required bool isSmallScreen,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 12 : 16, 
+          vertical: isSmallScreen ? 8 : 12
+        ),
         decoration: BoxDecoration(
           color: AppColors.cardColor,
           borderRadius: BorderRadius.circular(12),
@@ -262,13 +301,13 @@ class TimerScreen extends StatelessWidget {
             Icon(
               icon,
               color: AppColors.primaryColor,
-              size: 24,
+              size: isSmallScreen ? 20 : 24,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: isSmallScreen ? 2 : 4),
             Text(
               label,
               style: GoogleFonts.notoSans(
-                fontSize: 12,
+                fontSize: isSmallScreen ? 10 : 12,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textColor,
               ),

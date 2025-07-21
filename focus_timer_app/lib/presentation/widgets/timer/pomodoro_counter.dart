@@ -14,6 +14,15 @@ class PomodoroCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
+    final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
+    
+    final iconSize = isSmallScreen ? 20.0 : isMediumScreen ? 22.0 : 24.0;
+    final fontSize = isSmallScreen ? 12.0 : isMediumScreen ? 13.0 : 14.0;
+    final margin = isSmallScreen ? 3.0 : isMediumScreen ? 3.5 : 4.0;
+    final spacing = isSmallScreen ? 6.0 : 8.0;
+
     return Column(
       children: [
         // ポモドーロアイコン
@@ -22,23 +31,23 @@ class PomodoroCounter extends StatelessWidget {
           children: List.generate(totalPomodoros, (index) {
             final isCompleted = index < completedPomodoros;
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
+              margin: EdgeInsets.symmetric(horizontal: margin),
               child: Icon(
                 isCompleted ? Icons.circle : Icons.circle_outlined,
                 color: isCompleted ? AppColors.workColor : AppColors.textColor.withValues(alpha: 0.3),
-                size: 24,
+                size: iconSize,
               ),
             );
           }),
         ),
         
-        const SizedBox(height: 8),
+        SizedBox(height: spacing),
         
         // カウンター表示
         Text(
           '($completedPomodoros/$totalPomodoros)',
           style: GoogleFonts.notoSans(
-            fontSize: 14,
+            fontSize: fontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textColor.withValues(alpha: 0.7),
           ),

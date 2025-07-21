@@ -19,7 +19,9 @@ class AIService {
     try {
       final apiKey = APIKeys.geminiApiKey;
       if (apiKey.isEmpty) {
-        throw Exception('Gemini API key not found');
+        // APIキーが設定されていない場合は初期化をスキップ
+        print('Gemini API key not found, AI features will be disabled');
+        return;
       }
 
       _model = GenerativeModel(
@@ -29,14 +31,17 @@ class AIService {
       _isInitialized = true;
     } catch (e) {
       print('AIService initialization failed: $e');
-      rethrow;
+      // エラーが発生してもアプリを停止させない
     }
   }
 
   Future<AIAnalysis?> analyzeFocusPatterns(List<FocusPattern> patterns) async {
     try {
       await initialize();
-      if (_model == null) return null;
+      if (_model == null) {
+        print('AI model not initialized, returning null');
+        return null;
+      }
 
       final prompt = _buildAnalysisPrompt(patterns);
       final response = await _model!.generateContent([Content.text(prompt)]);
@@ -56,7 +61,10 @@ class AIService {
   ) async {
     try {
       await initialize();
-      if (_model == null) return [];
+      if (_model == null) {
+        print('AI model not initialized, returning empty list');
+        return [];
+      }
 
       final prompt = _buildInsightsPrompt(patterns, userData);
       final response = await _model!.generateContent([Content.text(prompt)]);
@@ -73,7 +81,10 @@ class AIService {
   Future<OptimalTiming?> predictOptimalTiming(List<FocusPattern> patterns) async {
     try {
       await initialize();
-      if (_model == null) return null;
+      if (_model == null) {
+        print('AI model not initialized, returning null');
+        return null;
+      }
 
       final prompt = _buildTimingPrompt(patterns);
       final response = await _model!.generateContent([Content.text(prompt)]);
@@ -93,17 +104,20 @@ class AIService {
   ) async {
     try {
       await initialize();
-      if (_model == null) return 0.0;
+      if (_model == null) {
+        print('AI model not initialized, returning default score');
+        return 75.0; // デフォルトスコア
+      }
 
       final prompt = _buildScorePrompt(patterns, userData);
       final response = await _model!.generateContent([Content.text(prompt)]);
       
-      if (response.text == null) return 0.0;
+      if (response.text == null) return 75.0;
 
       return _parseScoreResponse(response.text!);
     } catch (e) {
       print('AI score calculation failed: $e');
-      return 0.0;
+      return 75.0; // デフォルトスコア
     }
   }
 
@@ -209,10 +223,10 @@ ${AIPrompts.productivityScoreCalculation}
   double _parseScoreResponse(String response) {
     try {
       final score = double.tryParse(response.replaceAll(RegExp(r'[^0-9.]'), ''));
-      return score ?? 0.0;
+      return score ?? 75.0;
     } catch (e) {
       print('Failed to parse score response: $e');
-      return 0.0;
+      return 75.0;
     }
   }
 } 
