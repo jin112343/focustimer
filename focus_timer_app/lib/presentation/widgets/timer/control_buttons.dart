@@ -23,54 +23,45 @@ class ControlButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // メインボタン（開始/一時停止/再開）
-          Expanded(
-            flex: 2,
-            child: _buildMainButton(context),
-          ),
-          
-          const SizedBox(height: 8),
-          
-          // サブボタン（リセット/スキップ）
-          Expanded(
-            flex: 1,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: _buildSubButton(
-                    context,
-                    icon: Icons.refresh,
-                    label: 'リセット',
-                    onTap: onReset,
-                    color: AppColors.errorColor,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSubButton(
-                    context,
-                    icon: Icons.skip_next,
-                    label: 'スキップ',
-                    onTap: onSkip,
-                    color: AppColors.warningColor,
-                  ),
-                ),
-              ],
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
+    final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
+
+    return Column(
+      children: [
+        // メインボタン（開始/一時停止/再開）
+        _buildMainButton(context, isSmallScreen, isMediumScreen),
+        
+        SizedBox(height: isSmallScreen ? 12.0 : 16.0),
+        
+        // サブボタン（リセット/スキップ）
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildSubButton(
+              context,
+              icon: Icons.refresh,
+              label: 'リセット',
+              onTap: onReset,
+              color: AppColors.errorColor,
+              isSmallScreen: isSmallScreen,
             ),
-          ),
-        ],
-      ),
+            SizedBox(width: isSmallScreen ? 12.0 : 16.0),
+            _buildSubButton(
+              context,
+              icon: Icons.skip_next,
+              label: 'スキップ',
+              onTap: onSkip,
+              color: AppColors.warningColor,
+              isSmallScreen: isSmallScreen,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildMainButton(BuildContext context) {
+  Widget _buildMainButton(BuildContext context, bool isSmallScreen, bool isMediumScreen) {
     if (state.isInitial) {
       return _buildLargeButton(
         context,
@@ -78,6 +69,8 @@ class ControlButtons extends StatelessWidget {
         label: '開始',
         onTap: onStart,
         color: state.sessionColor,
+        isSmallScreen: isSmallScreen,
+        isMediumScreen: isMediumScreen,
       );
     } else if (state.isRunning) {
       return _buildLargeButton(
@@ -86,6 +79,8 @@ class ControlButtons extends StatelessWidget {
         label: '一時停止',
         onTap: onPause,
         color: state.sessionColor,
+        isSmallScreen: isSmallScreen,
+        isMediumScreen: isMediumScreen,
       );
     } else if (state.isPaused) {
       return _buildLargeButton(
@@ -94,6 +89,8 @@ class ControlButtons extends StatelessWidget {
         label: '再開',
         onTap: onResume,
         color: state.sessionColor,
+        isSmallScreen: isSmallScreen,
+        isMediumScreen: isMediumScreen,
       );
     } else {
       return _buildLargeButton(
@@ -102,6 +99,8 @@ class ControlButtons extends StatelessWidget {
         label: '開始',
         onTap: onStart,
         color: state.sessionColor,
+        isSmallScreen: isSmallScreen,
+        isMediumScreen: isMediumScreen,
       );
     }
   }
@@ -112,19 +111,27 @@ class ControlButtons extends StatelessWidget {
     required String label,
     required VoidCallback onTap,
     required Color color,
+    required bool isSmallScreen,
+    required bool isMediumScreen,
   }) {
+    final buttonWidth = isSmallScreen ? 160.0 : isMediumScreen ? 180.0 : 200.0;
+    final buttonHeight = isSmallScreen ? 48.0 : isMediumScreen ? 54.0 : 60.0;
+    final iconSize = isSmallScreen ? 22.0 : isMediumScreen ? 25.0 : 28.0;
+    final fontSize = isSmallScreen ? 16.0 : isMediumScreen ? 17.0 : 18.0;
+    final borderRadius = isSmallScreen ? 24.0 : isMediumScreen ? 27.0 : 30.0;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: double.infinity,
-        height: double.infinity,
+        width: buttonWidth,
+        height: buttonHeight,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [color, color.withValues(alpha: 0.8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
               color: color.withValues(alpha: 0.3),
@@ -139,13 +146,13 @@ class ControlButtons extends StatelessWidget {
             Icon(
               icon,
               color: Colors.white,
-              size: 24,
+              size: iconSize,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: isSmallScreen ? 6.0 : 8.0),
             Text(
               label,
               style: GoogleFonts.notoSans(
-                fontSize: 16,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -162,15 +169,22 @@ class ControlButtons extends StatelessWidget {
     required String label,
     required VoidCallback onTap,
     required Color color,
+    required bool isSmallScreen,
   }) {
+    final padding = isSmallScreen 
+      ? const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
+      : const EdgeInsets.symmetric(horizontal: 20, vertical: 12);
+    final iconSize = isSmallScreen ? 18.0 : 20.0;
+    final fontSize = isSmallScreen ? 12.0 : 14.0;
+    final spacing = isSmallScreen ? 4.0 : 6.0;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: double.infinity,
-        height: double.infinity,
+        padding: padding,
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 20.0),
           border: Border.all(
             color: color.withValues(alpha: 0.3),
             width: 1.5,
@@ -190,14 +204,14 @@ class ControlButtons extends StatelessWidget {
             Icon(
               icon,
               color: color,
-              size: 18,
+              size: iconSize,
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: spacing),
             Text(
               label,
               style: GoogleFonts.notoSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: fontSize,
+                fontWeight: FontWeight.w500,
                 color: color,
               ),
             ),

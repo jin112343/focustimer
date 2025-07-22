@@ -12,47 +12,47 @@ class PomodoroCounter extends StatelessWidget {
     required this.totalPomodoros,
   });
 
-// pomodoro_counter.dart の修正
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      child: Center(
-        child: Column(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
+    final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
+    
+    final iconSize = isSmallScreen ? 20.0 : isMediumScreen ? 22.0 : 24.0;
+    final fontSize = isSmallScreen ? 12.0 : isMediumScreen ? 13.0 : 14.0;
+    final margin = isSmallScreen ? 3.0 : isMediumScreen ? 3.5 : 4.0;
+    final spacing = isSmallScreen ? 6.0 : 8.0;
+
+    return Column(
+      children: [
+        // ポモドーロアイコン
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,  // この行を追加
-          children: [
-            // ポモドーロアイコン
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(totalPomodoros, (index) {
-                final isCompleted = index < completedPomodoros;
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(
-                    isCompleted ? Icons.circle : Icons.circle_outlined,
-                    color: isCompleted ? AppColors.workColor : AppColors.textColor.withValues(alpha: 0.3),
-                    size: 16,  // 20から16に削減
-                  ),
-                );
-              }),
-            ),
-
-            const SizedBox(height: 4),  // 8から4に削減
-
-            // カウンター表示
-            Text(
-              '($completedPomodoros/$totalPomodoros)',
-              style: GoogleFonts.notoSans(
-                fontSize: 14,  // 16から14に削減
-                fontWeight: FontWeight.w600,
-                color: AppColors.textColor.withValues(alpha: 0.8),
+          children: List.generate(totalPomodoros, (index) {
+            final isCompleted = index < completedPomodoros;
+            return Container(
+              margin: EdgeInsets.symmetric(horizontal: margin),
+              child: Icon(
+                isCompleted ? Icons.circle : Icons.circle_outlined,
+                color: isCompleted ? AppColors.workColor : AppColors.textColor.withValues(alpha: 0.3),
+                size: iconSize,
               ),
-            ),
-          ],
+            );
+          }),
         ),
-      ),
+        
+        SizedBox(height: spacing),
+        
+        // カウンター表示
+        Text(
+          '($completedPomodoros/$totalPomodoros)',
+          style: GoogleFonts.notoSans(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textColor.withValues(alpha: 0.7),
+          ),
+        ),
+      ],
     );
   }
 }

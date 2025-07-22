@@ -90,94 +90,60 @@ class _CircularTimerState extends State<CircularTimer>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController!,
-      builder: (context, child) {
-        final percent = _animationController!.value;
-        final availableWidth = MediaQuery.of(context).size.width;
-        final availableHeight = MediaQuery.of(context).size.height;
-        final minDimension = availableWidth < availableHeight ? availableWidth : availableHeight;
-        final radius = (minDimension - 40) / 2;
-        final safeRadius = radius > 80 ? radius : 80.0;
-        final lineWidth = safeRadius * 0.12;
-        final fontSize = (safeRadius * 0.35).clamp(24.0, 48.0);
-        final subtitleFontSize = (safeRadius * 0.15).clamp(14.0, 20.0);
-        return Center(
-          child: Container(
-            width: safeRadius * 2,
-            height: safeRadius * 2,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: widget.state.sessionColor.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: CircularPercentIndicator(
-              radius: safeRadius,
-              lineWidth: lineWidth,
-              percent: percent,
-              center: SizedBox.expand(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        widget.state.formattedTime,
-                        style: GoogleFonts.robotoMono(
-                          fontSize: fontSize.clamp(3.0, safeRadius * 0.3),
-                          fontWeight: FontWeight.bold,
-                          color: widget.state.sessionColor,
-                        ),
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: widget.state.sessionColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          widget.state.sessionTypeText,
-                          style: GoogleFonts.notoSans(
-                            fontSize: subtitleFontSize.clamp(3.0, safeRadius * 0.12),
-                            fontWeight: FontWeight.w600,
-                            color: widget.state.sessionColor,
-                          ),
-                          softWrap: false,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
-                  ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
+    final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
+    
+    // 画面サイズに応じたサイズ調整
+    final radius = isSmallScreen ? 80.0 : isMediumScreen ? 100.0 : 120.0;
+    final lineWidth = isSmallScreen ? 8.0 : isMediumScreen ? 10.0 : 12.0;
+    final timeFontSize = isSmallScreen ? 32.0 : isMediumScreen ? 40.0 : 48.0;
+    final sessionTypeFontSize = isSmallScreen ? 14.0 : isMediumScreen ? 16.0 : 18.0;
+    final centerSpacing = isSmallScreen ? 4.0 : 8.0;
+
+    return Column(
+      children: [
+        CircularPercentIndicator(
+          radius: radius,
+          lineWidth: lineWidth,
+          percent: widget.state.progressPercentage,
+          center: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                widget.state.formattedTime,
+                style: GoogleFonts.robotoMono(
+                  fontSize: timeFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: widget.state.sessionColor,
                 ),
               ),
-              linearGradient: const LinearGradient(
-                colors: [
-                  Color(0xFF00c5fc), // 水色
-                  Color(0xFF0032ff), // 青
-                  Color(0xFFff00a6), // 赤
-                  Color(0xFF7b02b3), // 紫
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              SizedBox(height: centerSpacing),
+              Text(
+                widget.state.sessionTypeText,
+                style: GoogleFonts.notoSans(
+                  fontSize: sessionTypeFontSize,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textColor,
+                ),
               ),
-              backgroundColor: Colors.white,
-              circularStrokeCap: CircularStrokeCap.round,
-              animation: false,
-            ),
+            ],
           ),
-        );
-      },
+          linearGradient: const LinearGradient(
+            colors: [
+              Color(0xFF00c5fc), // 水色
+              Color(0xFF0032ff), // 青
+              Color(0xFFff00a6), // 赤
+              Color(0xFF7b02b3), // 紫
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          backgroundColor: Colors.white,
+          circularStrokeCap: CircularStrokeCap.round,
+          animation: false,
+        ),
+      ],
     );
   }
 } 
