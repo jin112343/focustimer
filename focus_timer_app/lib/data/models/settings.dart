@@ -1,7 +1,7 @@
 class Settings {
-  final int workDuration; // 分
-  final int shortBreakDuration; // 分
-  final int longBreakDuration; // 分
+  final int workDurationSeconds; // 秒
+  final int shortBreakDurationSeconds; // 秒
+  final int longBreakDurationSeconds; // 秒
   final bool soundEnabled;
   final double volume; // 0.0-1.0
   final bool vibrationEnabled;
@@ -15,11 +15,12 @@ class Settings {
   final bool notificationsEnabled;
   final bool showProgressBar;
   final bool showPomodoroCounter;
+  final String? themeName; // カラーテーマ名
 
   const Settings({
-    required this.workDuration,
-    required this.shortBreakDuration,
-    required this.longBreakDuration,
+    required this.workDurationSeconds,
+    required this.shortBreakDurationSeconds,
+    required this.longBreakDurationSeconds,
     required this.soundEnabled,
     required this.volume,
     required this.vibrationEnabled,
@@ -33,12 +34,13 @@ class Settings {
     required this.notificationsEnabled,
     required this.showProgressBar,
     required this.showPomodoroCounter,
+    this.themeName,
   });
 
   Settings copyWith({
-    int? workDuration,
-    int? shortBreakDuration,
-    int? longBreakDuration,
+    int? workDurationSeconds,
+    int? shortBreakDurationSeconds,
+    int? longBreakDurationSeconds,
     bool? soundEnabled,
     double? volume,
     bool? vibrationEnabled,
@@ -52,11 +54,12 @@ class Settings {
     bool? notificationsEnabled,
     bool? showProgressBar,
     bool? showPomodoroCounter,
+    String? themeName,
   }) {
     return Settings(
-      workDuration: workDuration ?? this.workDuration,
-      shortBreakDuration: shortBreakDuration ?? this.shortBreakDuration,
-      longBreakDuration: longBreakDuration ?? this.longBreakDuration,
+      workDurationSeconds: workDurationSeconds ?? this.workDurationSeconds,
+      shortBreakDurationSeconds: shortBreakDurationSeconds ?? this.shortBreakDurationSeconds,
+      longBreakDurationSeconds: longBreakDurationSeconds ?? this.longBreakDurationSeconds,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       volume: volume ?? this.volume,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
@@ -70,14 +73,15 @@ class Settings {
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       showProgressBar: showProgressBar ?? this.showProgressBar,
       showPomodoroCounter: showPomodoroCounter ?? this.showPomodoroCounter,
+      themeName: themeName ?? this.themeName,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'workDuration': workDuration,
-      'shortBreakDuration': shortBreakDuration,
-      'longBreakDuration': longBreakDuration,
+      'workDurationSeconds': workDurationSeconds,
+      'shortBreakDurationSeconds': shortBreakDurationSeconds,
+      'longBreakDurationSeconds': longBreakDurationSeconds,
       'soundEnabled': soundEnabled,
       'volume': volume,
       'vibrationEnabled': vibrationEnabled,
@@ -91,14 +95,15 @@ class Settings {
       'notificationsEnabled': notificationsEnabled,
       'showProgressBar': showProgressBar,
       'showPomodoroCounter': showPomodoroCounter,
+      'themeName': themeName,
     };
   }
 
   factory Settings.fromJson(Map<String, dynamic> json) {
     return Settings(
-      workDuration: json['workDuration'] ?? 25,
-      shortBreakDuration: json['shortBreakDuration'] ?? 5,
-      longBreakDuration: json['longBreakDuration'] ?? 15,
+      workDurationSeconds: json['workDurationSeconds'] ?? ((json['workDuration'] ?? 1) * 60),
+      shortBreakDurationSeconds: json['shortBreakDurationSeconds'] ?? ((json['shortBreakDuration'] ?? 1) * 60),
+      longBreakDurationSeconds: json['longBreakDurationSeconds'] ?? ((json['longBreakDuration'] ?? 1) * 60),
       soundEnabled: json['soundEnabled'] ?? true,
       volume: json['volume'] ?? 0.7,
       vibrationEnabled: json['vibrationEnabled'] ?? true,
@@ -112,14 +117,15 @@ class Settings {
       notificationsEnabled: json['notificationsEnabled'] ?? true,
       showProgressBar: json['showProgressBar'] ?? true,
       showPomodoroCounter: json['showPomodoroCounter'] ?? true,
+      themeName: json['themeName'],
     );
   }
 
   factory Settings.defaultSettings() {
     return const Settings(
-      workDuration: 25,
-      shortBreakDuration: 5,
-      longBreakDuration: 15,
+      workDurationSeconds: 60,
+      shortBreakDurationSeconds: 60,
+      longBreakDurationSeconds: 60,
       soundEnabled: true,
       volume: 0.7,
       vibrationEnabled: true,
@@ -133,13 +139,14 @@ class Settings {
       notificationsEnabled: true,
       showProgressBar: true,
       showPomodoroCounter: true,
+      themeName: 'オーシャン',
     );
   }
 
-  // 時間を秒に変換
-  int get workDurationSeconds => workDuration * 60;
-  int get shortBreakDurationSeconds => shortBreakDuration * 60;
-  int get longBreakDurationSeconds => longBreakDuration * 60;
+  // 互換用: 分単位getter
+  int get workDuration => workDurationSeconds ~/ 60;
+  int get shortBreakDuration => shortBreakDurationSeconds ~/ 60;
+  int get longBreakDuration => longBreakDurationSeconds ~/ 60;
 
   // 設定の妥当性チェック
   bool get isValid {
@@ -154,9 +161,9 @@ class Settings {
 
   // デフォルト設定との差分
   bool get hasCustomSettings {
-    return workDuration != 25 ||
-           shortBreakDuration != 5 ||
-           longBreakDuration != 15 ||
+    return workDurationSeconds != 60 ||
+           shortBreakDurationSeconds != 60 ||
+           longBreakDurationSeconds != 60 ||
            !soundEnabled ||
            volume != 0.7 ||
            !vibrationEnabled ||

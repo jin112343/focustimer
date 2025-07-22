@@ -4,13 +4,15 @@ import '../../../core/constants/colors.dart';
 
 class TimePickerDialog extends StatefulWidget {
   final String title;
-  final int currentValue;
-  final Function(int) onChanged;
+  final int currentMinutes;
+  final int currentSeconds;
+  final Function(int minutes, int seconds) onChanged;
 
   const TimePickerDialog({
     super.key,
     required this.title,
-    required this.currentValue,
+    required this.currentMinutes,
+    required this.currentSeconds,
     required this.onChanged,
   });
 
@@ -19,12 +21,14 @@ class TimePickerDialog extends StatefulWidget {
 }
 
 class _TimePickerDialogState extends State<TimePickerDialog> {
-  late int selectedValue;
+  late int selectedMinutes;
+  late int selectedSeconds;
 
   @override
   void initState() {
     super.initState();
-    selectedValue = widget.currentValue;
+    selectedMinutes = widget.currentMinutes;
+    selectedSeconds = widget.currentSeconds;
   }
 
   @override
@@ -40,42 +44,72 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '時間を選択してください',
+            '分と秒を選択してください',
             style: GoogleFonts.notoSans(
               fontSize: 14,
               color: AppColors.textColor.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            height: 200,
-            child: ListWheelScrollView(
-              itemExtent: 50,
-              children: List.generate(60, (index) {
-                final value = index + 1;
-                final isSelected = value == selectedValue;
-                return Container(
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primaryColor : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 100,
+                height: 150,
+                child: ListWheelScrollView.useDelegate(
+                  itemExtent: 40,
+                  controller: FixedExtentScrollController(initialItem: selectedMinutes),
+                  onSelectedItemChanged: (index) {
+                    setState(() {
+                      selectedMinutes = index;
+                    });
+                  },
+                  childDelegate: ListWheelChildBuilderDelegate(
+                    builder: (context, index) {
+                      if (index == null || index < 0 || index >= 60) return null;
+                      return Center(
+                        child: Text('$index分',
+                          style: GoogleFonts.notoSans(
+                            fontSize: 18,
+                            fontWeight: selectedMinutes == index ? FontWeight.bold : FontWeight.normal,
+                            color: selectedMinutes == index ? AppColors.primaryColor : AppColors.textColor,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  child: Text(
-                    '${value}分',
-                    style: GoogleFonts.notoSans(
-                      fontSize: 18,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? Colors.white : AppColors.textColor,
-                    ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 100,
+                height: 150,
+                child: ListWheelScrollView.useDelegate(
+                  itemExtent: 40,
+                  controller: FixedExtentScrollController(initialItem: selectedSeconds),
+                  onSelectedItemChanged: (index) {
+                    setState(() {
+                      selectedSeconds = index;
+                    });
+                  },
+                  childDelegate: ListWheelChildBuilderDelegate(
+                    builder: (context, index) {
+                      if (index == null || index < 0 || index >= 60) return null;
+                      return Center(
+                        child: Text('$index秒',
+                          style: GoogleFonts.notoSans(
+                            fontSize: 18,
+                            fontWeight: selectedSeconds == index ? FontWeight.bold : FontWeight.normal,
+                            color: selectedSeconds == index ? AppColors.primaryColor : AppColors.textColor,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              }),
-              onSelectedItemChanged: (index) {
-                setState(() {
-                  selectedValue = index + 1;
-                });
-              },
-            ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -89,7 +123,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
         ),
         TextButton(
           onPressed: () {
-            widget.onChanged(selectedValue);
+            widget.onChanged(selectedMinutes, selectedSeconds);
             Navigator.of(context).pop();
           },
           child: Text(

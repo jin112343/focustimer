@@ -5,10 +5,23 @@ import 'presentation/providers/timer_provider.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/providers/ai_provider.dart';
 import 'presentation/screens/timer_screen.dart';
+import 'presentation/screens/ai_insights_screen.dart';
 import 'data/models/settings.dart';
+import 'presentation/theme/app_theme.dart';
 import 'core/constants/colors.dart';
+import 'l10n/app_localizations.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
+  // 起動時間最適化のための設定
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // フォントの事前読み込み
+  GoogleFonts.pendingFonts([
+    GoogleFonts.notoSans(),
+  ]);
+
   runApp(const FocusTimerApp());
 }
 
@@ -36,18 +49,29 @@ class FocusTimerApp extends StatelessWidget {
           create: (context) => AIProvider(),
         ),
       ],
-      child: MaterialApp(
-        title: 'Focus Timer AI',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primaryColor,
-            brightness: Brightness.light,
-          ),
-          textTheme: GoogleFonts.notoSansTextTheme(Theme.of(context).textTheme),
-          useMaterial3: true,
-        ),
-        home: const TimerScreen(),
-        debugShowCheckedModeBanner: false,
+      child: Builder(
+        builder: (context) {
+          final settings = context.watch<SettingsProvider>().settings;
+          return MaterialApp(
+            title: 'Focus Timer AI',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            navigatorKey: navigatorKey,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: settings.preferredLanguage == 'en'
+                ? const Locale('en')
+                : const Locale('ja'),
+            home: Container(
+              color: AppColors.backgroundColor,
+              child: const TimerScreen(),
+            ),
+            routes: {
+              '/ai-insights': (context) => const AIInsightsScreen(),
+            },
+          );
+        },
       ),
     );
   }

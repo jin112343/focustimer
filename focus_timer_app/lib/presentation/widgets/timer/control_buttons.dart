@@ -23,35 +23,50 @@ class ControlButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // メインボタン（開始/一時停止/再開）
-        _buildMainButton(context),
-        
-        const SizedBox(height: 16),
-        
-        // サブボタン（リセット/スキップ）
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildSubButton(
-              context,
-              icon: Icons.refresh,
-              label: 'リセット',
-              onTap: onReset,
-              color: AppColors.errorColor,
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // メインボタン（開始/一時停止/再開）
+          Expanded(
+            flex: 2,
+            child: _buildMainButton(context),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // サブボタン（リセット/スキップ）
+          Expanded(
+            flex: 1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _buildSubButton(
+                    context,
+                    icon: Icons.refresh,
+                    label: 'リセット',
+                    onTap: onReset,
+                    color: AppColors.errorColor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSubButton(
+                    context,
+                    icon: Icons.skip_next,
+                    label: 'スキップ',
+                    onTap: onSkip,
+                    color: AppColors.warningColor,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            _buildSubButton(
-              context,
-              icon: Icons.skip_next,
-              label: 'スキップ',
-              onTap: onSkip,
-              color: AppColors.warningColor,
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -101,15 +116,15 @@ class ControlButtons extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 200,
-        height: 60,
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [color, color.withValues(alpha: 0.8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: color.withValues(alpha: 0.3),
@@ -124,13 +139,13 @@ class ControlButtons extends StatelessWidget {
             Icon(
               icon,
               color: Colors.white,
-              size: 28,
+              size: 24,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: GoogleFonts.notoSans(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -151,29 +166,38 @@ class ControlButtons extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: color.withValues(alpha: 0.3),
-            width: 1,
+            width: 1.5,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               color: color,
-              size: 20,
+              size: 18,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.notoSans(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: color,
               ),
             ),

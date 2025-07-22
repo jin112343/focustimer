@@ -23,7 +23,7 @@ class AIService {
       }
 
       _model = GenerativeModel(
-        model: 'gemini-pro',
+        model: 'gemini-1.0-pro',
         apiKey: apiKey,
       );
       _isInitialized = true;

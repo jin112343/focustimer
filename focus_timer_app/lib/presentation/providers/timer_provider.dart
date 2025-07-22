@@ -5,6 +5,12 @@ import '../../data/models/pomodoro_state.dart';
 import '../../data/models/settings.dart';
 import '../../core/constants/app_constants.dart';
 import '../../services/audio_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/ai_provider.dart';
+import '../../core/utils/responsive_utils.dart';
+import '../../../main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class TimerProvider extends ChangeNotifier {
   Timer? _timer;
@@ -38,6 +44,10 @@ class TimerProvider extends ChangeNotifier {
 
   void startTimer() {
     if (_state.isRunning) return;
+
+    if (_state.isFinished) {
+      _moveToNextSession();
+    }
 
     _state = _state.copyWith(
       status: TimerStatus.running,
@@ -85,7 +95,7 @@ class TimerProvider extends ChangeNotifier {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_state.remainingSeconds <= 1) {
+      if (_state.remainingSeconds <= 0) {
         _completeSession();
       } else {
         _state = _state.copyWith(
@@ -131,13 +141,28 @@ class TimerProvider extends ChangeNotifier {
     // 音声・バイブレーション通知
     _playNotification();
 
+    // ポモドーロサイクル完了時（長い休憩に入る直前）だけAI分析を自動実行
+    if (_state.currentSession == SessionType.work) {
+      // サイクル数はAppConstants.pomodorosBeforeLongBreak
+      if ((_state.completedPomodoros + 1) % AppConstants.pomodorosBeforeLongBreak == 0) {
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          final aiProvider = Provider.of<AIProvider>(context, listen: false);
+          final focusPatterns = toFocusPatternList(updatedHistory);
+          aiProvider.performFullAnalysis(focusPatterns);
+        }
+      }
+    }
+
     // 自動開始が有効な場合、次のセッションに進む
     if (_settings.autoStart) {
       Future.delayed(const Duration(seconds: 2), () {
         _moveToNextSession();
-        notifyListeners();
+        startTimer(); // タイマーも自動で再スタート
       });
     }
+
+    saveSessionHistory();
   }
 
   void _playNotification() async {
@@ -201,5 +226,36 @@ class TimerProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  // --- 追加: 履歴の永続化 ---
+  Future<void> loadSessionHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString('sessionHistory');
+    if (jsonString != null) {
+      final List<dynamic> jsonList = json.decode(jsonString);
+      final List<SessionRecord> loaded = jsonList.map((e) => SessionRecord.fromJson(e)).toList();
+      _state = _state.copyWith(sessionHistory: loaded);
+      notifyListeners();
+    }
+  }
+
+  Future<void> saveSessionHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _state.sessionHistory.map((e) => e.toJson()).toList();
+    await prefs.setString('sessionHistory', json.encode(jsonList));
+  }
+
+  // --- 追加: 初期化時に履歴を復元 ---
+  Future<void> initialize() async {
+    await loadSessionHistory();
+  }
+
+  // --- 追加: セッション履歴のリセット ---
+  Future<void> clearSessionHistory() async {
+    _state = _state.copyWith(sessionHistory: []);
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('sessionHistory');
   }
 } 

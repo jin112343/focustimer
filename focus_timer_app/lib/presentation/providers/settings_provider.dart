@@ -54,25 +54,25 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   // 個別設定の更新メソッド
-  Future<void> updateWorkDuration(int duration) async {
-    if (duration > 0) {
-      _settings = _settings.copyWith(workDuration: duration);
+  Future<void> updateWorkDuration(int seconds) async {
+    if (seconds > 0) {
+      _settings = _settings.copyWith(workDurationSeconds: seconds);
       await saveSettings();
       notifyListeners();
     }
   }
 
-  Future<void> updateShortBreakDuration(int duration) async {
-    if (duration > 0) {
-      _settings = _settings.copyWith(shortBreakDuration: duration);
+  Future<void> updateShortBreakDuration(int seconds) async {
+    if (seconds > 0) {
+      _settings = _settings.copyWith(shortBreakDurationSeconds: seconds);
       await saveSettings();
       notifyListeners();
     }
   }
 
-  Future<void> updateLongBreakDuration(int duration) async {
-    if (duration > 0) {
-      _settings = _settings.copyWith(longBreakDuration: duration);
+  Future<void> updateLongBreakDuration(int seconds) async {
+    if (seconds > 0) {
+      _settings = _settings.copyWith(longBreakDurationSeconds: seconds);
       await saveSettings();
       notifyListeners();
     }
@@ -130,6 +130,13 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateLanguage(String language) async {
+    _settings = _settings.copyWith(preferredLanguage: language);
+    await saveSettings();
+    // l10n: MaterialAppのlocaleが自動で切り替わります
+    notifyListeners();
+  }
+
   Future<void> toggleDarkMode(bool enabled) async {
     _settings = _settings.copyWith(darkModeEnabled: enabled);
     await saveSettings();
@@ -162,6 +169,12 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> resetToDefaults() async {
     _settings = Settings.defaultSettings();
+    await saveSettings();
+    notifyListeners();
+  }
+
+  Future<void> updateThemeName(String themeName) async {
+    _settings = _settings.copyWith(themeName: themeName);
     await saveSettings();
     notifyListeners();
   }

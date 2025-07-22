@@ -5,12 +5,48 @@ import '../providers/ai_provider.dart';
 import '../providers/timer_provider.dart';
 import '../widgets/ai/ai_insight_card.dart';
 import '../widgets/ai/productivity_score.dart';
+import '../widgets/ai/focus_chart.dart';
 import '../../core/constants/colors.dart';
 import '../../data/models/ai_analysis.dart';
 import '../../data/models/focus_pattern.dart';
+import 'dart:ui';
+import '../../core/utils/responsive_utils.dart';
+import '../../l10n/app_localizations.dart';
 
-class AIInsightsScreen extends StatelessWidget {
+class AIInsightsScreen extends StatefulWidget {
   const AIInsightsScreen({super.key});
+
+  @override
+  State<AIInsightsScreen> createState() => _AIInsightsScreenState();
+}
+
+class _AIInsightsScreenState extends State<AIInsightsScreen> {
+  bool _analysisRequested = false;
+  String _selectedPeriod = '日'; // '日', '週', '月'
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_analysisRequested) {
+      final aiProvider = context.read<AIProvider>();
+      final timerProvider = context.read<TimerProvider>();
+      final patterns = timerProvider.state.sessionHistory.map((session) {
+        return FocusPattern(
+          id: session.id,
+          timestamp: session.startTime,
+          plannedDuration: session.plannedDuration,
+          actualDuration: session.actualDuration,
+          interruptions: session.interruptions,
+          taskType: session.isWorkSession ? 'work' : 'break',
+          taskCategory: 'general',
+          productivityScore: session.completionRate,
+          sessionTime: TimeOfDay.fromDateTime(session.startTime),
+        );
+      }).toList();
+      aiProvider.performFullAnalysis(patterns);
+      _analysisRequested = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +54,7 @@ class AIInsightsScreen extends StatelessWidget {
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         title: Text(
-          '🤖 AI インサイト',
+          AppLocalizations.of(context)!.aiInsights,
           style: GoogleFonts.notoSans(
             fontWeight: FontWeight.bold,
           ),
@@ -38,10 +74,40 @@ class AIInsightsScreen extends StatelessWidget {
       ),
       body: Consumer2<AIProvider, TimerProvider>(
         builder: (context, aiProvider, timerProvider, child) {
+          final sessionHistory = timerProvider.state.sessionHistory;
+          // 実績データのみで日・週・月ごとに集計
+          final period = _selectedPeriod;
+          final avgMap = getAverageCompletionByPeriod(sessionHistory, period);
+          // ラベル生成
+          List<String> labels;
+          if (period == '週') {
+            labels = avgMap.keys.map((k) {
+              // k: yyyy-Wxx から週の月曜の日付を算出
+              final parts = k.split('-W');
+              final year = int.parse(parts[0]);
+              final week = int.parse(parts[1]);
+              final monday = DateTime.utc(year, 1, 1 + (week - 1) * 7);
+              return formatWeekLabel(monday);
+            }).toList();
+          } else if (period == '月') {
+            labels = avgMap.keys.map((k) {
+              // k: yyyy-MM から月初の日付
+              final parts = k.split('-');
+              final year = int.parse(parts[0]);
+              final month = int.parse(parts[1]);
+              final firstDay = DateTime(year, month, 1);
+              return formatMonthLabel(firstDay);
+            }).toList();
+          } else {
+            labels = avgMap.keys.toList()..sort();
+          }
+          final data = labels.asMap().entries.map((e) => avgMap[avgMap.keys.toList()[e.key]] ?? 0.0).toList();
+          final isValidPattern = labels.isNotEmpty && data.any((v) => v > 0 && v < 1);
           final insights = aiProvider.insights;
           final isAnalyzing = aiProvider.isAnalyzing;
           final errorMessage = aiProvider.errorMessage;
           final lastAnalysisTime = aiProvider.lastAnalysisTime;
+          final patterns = aiProvider.currentAnalysis?.patterns ?? {};
 
           return RefreshIndicator(
             onRefresh: () => _refreshAnalysis(context),
@@ -52,6 +118,17 @@ class AIInsightsScreen extends StatelessWidget {
                 _buildHeader(aiProvider, lastAnalysisTime),
                 
                 const SizedBox(height: 24),
+                
+                // 期間切り替えタブ
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildPeriodTab('日'),
+                    _buildPeriodTab('週'),
+                    _buildPeriodTab('月'),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 
                 // エラーメッセージ
                 if (errorMessage != null)
@@ -70,9 +147,35 @@ class AIInsightsScreen extends StatelessWidget {
                 
                 const SizedBox(height: 24),
                 
+                // 集中度グラフ（本物の値のみ）
+                if (isValidPattern)
+                  FocusChart(
+                    data: data,
+                    labels: labels,
+                    title: AppLocalizations.of(context)!.concentrationTrend(period),
+                  ),
+                if (!isValidPattern)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.noConcentrationData(period),
+                      style: GoogleFonts.notoSans(
+                        fontSize: 14,
+                        color: AppColors.textColor.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                
+                const SizedBox(height: 24),
+                
                 // AIインサイトカード
                 if (insights.isNotEmpty) ...[
-                  _buildSectionHeader('💡 個人化されたアドバイス'),
+                  _buildSectionHeader(AppLocalizations.of(context)!.personalizedAdvice),
                   ...insights.map((insight) => Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: AIInsightCard(
@@ -101,8 +204,6 @@ class AIInsightsScreen extends StatelessWidget {
                 
                 // 手動更新ボタン
                 _buildRefreshButton(context, aiProvider),
-                
-                const SizedBox(height: 32),
               ],
             ),
           );
@@ -115,11 +216,11 @@ class AIInsightsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: AppColors.aiPrimaryGradient,
+        gradient: AppColors.aiInsightGradient,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.aiPrimaryColor.withValues(alpha: 0.3),
+            color: AppColors.accentColor.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -138,7 +239,7 @@ class AIInsightsScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'AI分析結果',
+                  AppLocalizations.of(context)!.aiAnalysisResult,
                   style: GoogleFonts.notoSans(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -151,8 +252,8 @@ class AIInsightsScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             lastAnalysisTime != null
-                ? '最終更新: ${_formatTimeAgo(lastAnalysisTime)}'
-                : '分析データがありません',
+                ? AppLocalizations.of(context)!.lastUpdated(formatTimeAgo(lastAnalysisTime))
+                : AppLocalizations.of(context)!.noAnalysisData,
             style: GoogleFonts.notoSans(
               fontSize: 14,
               color: Colors.white.withValues(alpha: 0.8),
@@ -194,7 +295,7 @@ class AIInsightsScreen extends StatelessWidget {
           TextButton(
             onPressed: aiProvider.clearError,
             child: Text(
-              '閉じる',
+              AppLocalizations.of(context)!.close,
               style: GoogleFonts.notoSans(
                 color: AppColors.errorColor,
                 fontWeight: FontWeight.bold,
@@ -229,7 +330,7 @@ class AIInsightsScreen extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            'AI分析中...',
+            AppLocalizations.of(context)!.aiAnalyzing,
             style: GoogleFonts.notoSans(
               fontSize: 14,
               color: AppColors.aiPrimaryColor,
@@ -282,7 +383,7 @@ class AIInsightsScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '最適タイミング予測',
+                AppLocalizations.of(context)!.optimalTimingPrediction,
                 style: GoogleFonts.notoSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -309,7 +410,7 @@ class AIInsightsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '推奨スケジュール:',
+            AppLocalizations.of(context)!.recommendedSchedule,
             style: GoogleFonts.notoSans(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -333,7 +434,7 @@ class AIInsightsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '予想完了セッション: ${timing.recommendedSessions}',
+            AppLocalizations.of(context)!.predictedSessions(timing.recommendedSessions),
             style: GoogleFonts.notoSans(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -354,7 +455,7 @@ class AIInsightsScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
+        color: AppColors.longBreakColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -376,11 +477,11 @@ class AIInsightsScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '習慣形成の進捗',
+                AppLocalizations.of(context)!.habitFormationProgress,
                 style: GoogleFonts.notoSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textColor,
+                  color: Colors.black,
                 ),
               ),
             ],
@@ -389,11 +490,11 @@ class AIInsightsScreen extends StatelessWidget {
           Row(
             children: [
               Text(
-                '連続使用: $consecutiveDays日 ',
+                AppLocalizations.of(context)!.consecutiveUsage(consecutiveDays),
                 style: GoogleFonts.notoSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textColor,
+                  color: Colors.black,
                 ),
               ),
               const Icon(
@@ -405,15 +506,15 @@ class AIInsightsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '週間目標達成率: ${(weeklyGoal * 100).toInt()}%',
+            AppLocalizations.of(context)!.weeklyGoalAchievement((weeklyGoal * 100).toInt()),
             style: GoogleFonts.notoSans(
               fontSize: 14,
-              color: AppColors.textColor.withValues(alpha: 0.8),
+              color: Colors.black.withOpacity(0.8),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            '次のマイルストーン: 連続${nextMilestone}日使用まで あと${nextMilestone - consecutiveDays}日',
+            AppLocalizations.of(context)!.nextMilestone(nextMilestone, nextMilestone - consecutiveDays),
             style: GoogleFonts.notoSans(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -431,7 +532,7 @@ class AIInsightsScreen extends StatelessWidget {
         onPressed: aiProvider.isAnalyzing ? null : () => _refreshAnalysis(context),
         icon: const Icon(Icons.refresh),
         label: Text(
-          'AI分析を更新',
+          AppLocalizations.of(context)!.aiRefresh,
           style: GoogleFonts.notoSans(
             fontWeight: FontWeight.w500,
           ),
@@ -455,18 +556,18 @@ class AIInsightsScreen extends StatelessWidget {
     return TimeOfDay(hour: newDateTime.hour, minute: newDateTime.minute);
   }
 
-  String _formatTimeAgo(DateTime time) {
+  String formatTimeAgo(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
 
     if (difference.inMinutes < 1) {
-      return '今';
+      return AppLocalizations.of(context)!.justNow;
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}分前';
+      return AppLocalizations.of(context)!.minutesAgo(difference.inMinutes);
     } else if (difference.inHours < 24) {
-      return '${difference.inHours}時間前';
+      return AppLocalizations.of(context)!.hoursAgo(difference.inHours);
     } else {
-      return '${difference.inDays}日前';
+      return AppLocalizations.of(context)!.daysAgo(difference.inDays);
     }
   }
 
@@ -524,7 +625,7 @@ class AIInsightsScreen extends StatelessWidget {
             if (insight.actionItems.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
-                '実行可能なアクション:',
+                AppLocalizations.of(context)!.actionableActions,
                 style: GoogleFonts.notoSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -552,7 +653,7 @@ class AIInsightsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('閉じる', style: GoogleFonts.notoSans()),
+            child: Text(AppLocalizations.of(context)!.close, style: GoogleFonts.notoSans()),
           ),
         ],
       ),
@@ -579,5 +680,35 @@ class AIInsightsScreen extends StatelessWidget {
     }).toList();
 
     await aiProvider.performFullAnalysis(patterns);
+  }
+
+  Widget _buildPeriodTab(String label) {
+    final isSelected = _selectedPeriod == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedPeriod = label;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.aiPrimaryColor : AppColors.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.aiPrimaryColor : AppColors.cardColor.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.notoSans(
+            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.white : AppColors.textColor,
+          ),
+        ),
+      ),
+    );
   }
 } 

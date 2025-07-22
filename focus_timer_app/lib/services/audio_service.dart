@@ -22,19 +22,10 @@ class AudioService {
   }
 
   Future<void> playNotificationSound(Settings settings) async {
-    if (!settings.soundEnabled) return;
-
-    try {
-      await initialize();
-      
-      // 音量を設定
-      await _audioPlayer.setVolume(settings.volume);
-      
-      // 音声ファイルを再生（実際の実装では適切な音声ファイルを使用）
-      await _audioPlayer.play(AssetSource('sounds/${settings.selectedSound}.mp3'));
-    } catch (e) {
-      print('Failed to play notification sound: $e');
-    }
+    // TODO: 通知音の実装（現状は何もしない）
+    // final player = AudioPlayer();
+    // await player.play(AssetSource('sounds/notification_simple.mp3'));
+    // 通知音は後で実装予定。今は何もしない。
   }
 
   Future<void> stopSound() async {
@@ -47,14 +38,18 @@ class AudioService {
 
   Future<void> vibrate(Settings settings) async {
     if (!settings.vibrationEnabled) return;
+    if (!await Vibration.hasVibrator() ?? false) return;
 
-    try {
-      if (await Vibration.hasVibrator() ?? false) {
-        final pattern = _getVibrationPattern(settings.vibrationIntensity);
-        await Vibration.vibrate(pattern: pattern);
-      }
-    } catch (e) {
-      print('Failed to vibrate: $e');
+    final intensity = settings.vibrationIntensity;
+    final pattern = _getVibrationPattern(intensity);
+    if (pattern.isEmpty) return;
+
+    // iOS/Android両対応: iOSはパターン未対応なのでdurationのみ
+    if (await Vibration.hasCustomVibrationsSupport() ?? false) {
+      await Vibration.vibrate(pattern: pattern);
+    } else {
+      // 最初のdurationだけ使う
+      await Vibration.vibrate(duration: pattern.length > 1 ? pattern[1] : 200);
     }
   }
 

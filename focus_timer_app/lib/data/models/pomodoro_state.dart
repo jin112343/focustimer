@@ -89,10 +89,11 @@ class PomodoroState {
   bool get isFinished => status == TimerStatus.finished;
   bool get isInitial => status == TimerStatus.initial;
 
+  int get remainingMinutes => remainingSeconds ~/ 60;
+  int get remainingSecondsDisplay => remainingSeconds % 60;
+  
   String get formattedTime {
-    final minutes = remainingSeconds ~/ 60;
-    final seconds = remainingSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    return '${remainingMinutes.toString().padLeft(2, '0')}:${remainingSecondsDisplay.toString().padLeft(2, '0')}';
   }
 
   double get progressPercentage {
