@@ -17,6 +17,7 @@ class TimerProvider extends ChangeNotifier {
   PomodoroState _state;
   Settings _settings;
   final Uuid _uuid = const Uuid();
+  bool _hasPlayedSound = false; // 音声再生フラグを追加
 
   TimerProvider({required Settings settings})
       : _settings = settings,
@@ -54,6 +55,9 @@ class TimerProvider extends ChangeNotifier {
       sessionStartTime: DateTime.now(),
     );
 
+    // 音声再生フラグをリセット
+    _hasPlayedSound = false;
+
     _startTimer();
     notifyListeners();
   }
@@ -62,6 +66,12 @@ class TimerProvider extends ChangeNotifier {
     if (!_state.isRunning) return;
 
     _timer?.cancel();
+    // 音声を停止
+    AudioService().stopSound();
+    // 残り3秒以下の場合は音声再生フラグを設定（スキップ）
+    if (_state.remainingSeconds <= 3) {
+      _hasPlayedSound = true;
+    }
     _state = _state.copyWith(
       status: TimerStatus.paused,
       lastPauseTime: DateTime.now(),
@@ -83,12 +93,20 @@ class TimerProvider extends ChangeNotifier {
 
   void resetTimer() {
     _timer?.cancel();
+    // 音声を停止
+    AudioService().stopSound();
+    // 音声再生フラグをリセット
+    _hasPlayedSound = false;
     _resetToWorkSession();
     notifyListeners();
   }
 
   void skipSession() {
     _timer?.cancel();
+    // 音声を停止
+    AudioService().stopSound();
+    // 音声再生フラグをリセット
+    _hasPlayedSound = false;
     _moveToNextSession();
     notifyListeners();
   }
@@ -98,6 +116,12 @@ class TimerProvider extends ChangeNotifier {
       if (_state.remainingSeconds <= 0) {
         _completeSession();
       } else {
+        // 3.2秒前になったら音声を開始（一回のみ）
+        if (_state.remainingSeconds == 3 && !_hasPlayedSound) {
+          _startCountdownSound();
+          _hasPlayedSound = true; // フラグを設定
+        }
+        
         _state = _state.copyWith(
           remainingSeconds: _state.remainingSeconds - 1,
         );
@@ -106,8 +130,16 @@ class TimerProvider extends ChangeNotifier {
     });
   }
 
+  void _startCountdownSound() {
+    print('Starting countdown sound at 3.2 seconds remaining...');
+    AudioService().playNotificationSound(_settings);
+  }
+
   void _completeSession() {
     _timer?.cancel();
+    
+    // 音声を停止
+    AudioService().stopSound();
     
     // セッション記録を保存
     final sessionRecord = SessionRecord(
@@ -138,8 +170,10 @@ class TimerProvider extends ChangeNotifier {
 
     notifyListeners();
 
-    // 音声・バイブレーション通知
-    _playNotification();
+    // 音が鳴り始めていない場合のみ、セッション完了時のアラーム音を鳴らす
+    if (!_hasPlayedSound) {
+      _playNotification();
+    }
 
     // ポモドーロサイクル完了時（長い休憩に入る直前）だけAI分析を自動実行
     if (_state.currentSession == SessionType.work) {
@@ -162,13 +196,17 @@ class TimerProvider extends ChangeNotifier {
       });
     }
 
+    // 音声再生フラグをリセット（次のセッションのため）
+    _hasPlayedSound = false;
+
     saveSessionHistory();
   }
 
   void _playNotification() async {
+    print('TimerProvider: Playing notification...');
     final audioService = AudioService();
     await audioService.playNotificationSound(_settings);
-    await audioService.vibrate(_settings);
+    print('TimerProvider: Notification completed');
   }
 
   void _moveToNextSession() {

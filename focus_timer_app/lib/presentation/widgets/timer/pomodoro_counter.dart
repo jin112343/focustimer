@@ -18,10 +18,10 @@ class PomodoroCounter extends StatelessWidget {
     final isSmallScreen = screenWidth < 400;
     final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
     
-    final iconSize = isSmallScreen ? 20.0 : isMediumScreen ? 22.0 : 24.0;
-    final fontSize = isSmallScreen ? 12.0 : isMediumScreen ? 13.0 : 14.0;
-    final margin = isSmallScreen ? 3.0 : isMediumScreen ? 3.5 : 4.0;
-    final spacing = isSmallScreen ? 6.0 : 8.0;
+    final iconSize = isSmallScreen ? 28.0 : isMediumScreen ? 32.0 : 36.0;
+    final fontSize = isSmallScreen ? 16.0 : isMediumScreen ? 18.0 : 20.0;
+    final margin = isSmallScreen ? 4.0 : isMediumScreen ? 5.0 : 6.0;
+    final spacing = isSmallScreen ? 8.0 : 10.0;
 
     return Column(
       children: [

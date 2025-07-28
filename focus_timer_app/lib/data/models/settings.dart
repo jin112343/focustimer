@@ -3,38 +3,30 @@ class Settings {
   final int shortBreakDurationSeconds; // 秒
   final int longBreakDurationSeconds; // 秒
   final bool soundEnabled;
-  final double volume; // 0.0-1.0
-  final bool vibrationEnabled;
   final bool autoStart;
   final bool aiEnabled;
   final bool aiSuggestionsEnabled;
-  final String preferredLanguage;
-  final bool darkModeEnabled;
   final String selectedSound;
-  final int vibrationIntensity; // 0-3
   final bool notificationsEnabled;
   final bool showProgressBar;
   final bool showPomodoroCounter;
-  final String? themeName; // カラーテーマ名
+  final bool isPremium; // プレミアム版かどうか
+  final String systemSoundType; // iOSシステムサウンドタイプ
 
   const Settings({
     required this.workDurationSeconds,
     required this.shortBreakDurationSeconds,
     required this.longBreakDurationSeconds,
     required this.soundEnabled,
-    required this.volume,
-    required this.vibrationEnabled,
     required this.autoStart,
     required this.aiEnabled,
     required this.aiSuggestionsEnabled,
-    required this.preferredLanguage,
-    required this.darkModeEnabled,
     required this.selectedSound,
-    required this.vibrationIntensity,
     required this.notificationsEnabled,
     required this.showProgressBar,
     required this.showPomodoroCounter,
-    this.themeName,
+    required this.isPremium,
+    required this.systemSoundType,
   });
 
   Settings copyWith({
@@ -42,38 +34,30 @@ class Settings {
     int? shortBreakDurationSeconds,
     int? longBreakDurationSeconds,
     bool? soundEnabled,
-    double? volume,
-    bool? vibrationEnabled,
     bool? autoStart,
     bool? aiEnabled,
     bool? aiSuggestionsEnabled,
-    String? preferredLanguage,
-    bool? darkModeEnabled,
     String? selectedSound,
-    int? vibrationIntensity,
     bool? notificationsEnabled,
     bool? showProgressBar,
     bool? showPomodoroCounter,
-    String? themeName,
+    bool? isPremium,
+    String? systemSoundType,
   }) {
     return Settings(
       workDurationSeconds: workDurationSeconds ?? this.workDurationSeconds,
       shortBreakDurationSeconds: shortBreakDurationSeconds ?? this.shortBreakDurationSeconds,
       longBreakDurationSeconds: longBreakDurationSeconds ?? this.longBreakDurationSeconds,
       soundEnabled: soundEnabled ?? this.soundEnabled,
-      volume: volume ?? this.volume,
-      vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       autoStart: autoStart ?? this.autoStart,
       aiEnabled: aiEnabled ?? this.aiEnabled,
       aiSuggestionsEnabled: aiSuggestionsEnabled ?? this.aiSuggestionsEnabled,
-      preferredLanguage: preferredLanguage ?? this.preferredLanguage,
-      darkModeEnabled: darkModeEnabled ?? this.darkModeEnabled,
       selectedSound: selectedSound ?? this.selectedSound,
-      vibrationIntensity: vibrationIntensity ?? this.vibrationIntensity,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       showProgressBar: showProgressBar ?? this.showProgressBar,
       showPomodoroCounter: showPomodoroCounter ?? this.showPomodoroCounter,
-      themeName: themeName ?? this.themeName,
+      isPremium: isPremium ?? this.isPremium,
+      systemSoundType: systemSoundType ?? this.systemSoundType,
     );
   }
 
@@ -83,19 +67,15 @@ class Settings {
       'shortBreakDurationSeconds': shortBreakDurationSeconds,
       'longBreakDurationSeconds': longBreakDurationSeconds,
       'soundEnabled': soundEnabled,
-      'volume': volume,
-      'vibrationEnabled': vibrationEnabled,
       'autoStart': autoStart,
       'aiEnabled': aiEnabled,
       'aiSuggestionsEnabled': aiSuggestionsEnabled,
-      'preferredLanguage': preferredLanguage,
-      'darkModeEnabled': darkModeEnabled,
       'selectedSound': selectedSound,
-      'vibrationIntensity': vibrationIntensity,
       'notificationsEnabled': notificationsEnabled,
       'showProgressBar': showProgressBar,
       'showPomodoroCounter': showPomodoroCounter,
-      'themeName': themeName,
+      'isPremium': isPremium,
+      'systemSoundType': systemSoundType,
     };
   }
 
@@ -105,19 +85,15 @@ class Settings {
       shortBreakDurationSeconds: json['shortBreakDurationSeconds'] ?? ((json['shortBreakDuration'] ?? 1) * 60),
       longBreakDurationSeconds: json['longBreakDurationSeconds'] ?? ((json['longBreakDuration'] ?? 1) * 60),
       soundEnabled: json['soundEnabled'] ?? true,
-      volume: json['volume'] ?? 0.7,
-      vibrationEnabled: json['vibrationEnabled'] ?? true,
       autoStart: json['autoStart'] ?? false,
       aiEnabled: json['aiEnabled'] ?? true,
       aiSuggestionsEnabled: json['aiSuggestionsEnabled'] ?? true,
-      preferredLanguage: json['preferredLanguage'] ?? 'ja',
-      darkModeEnabled: json['darkModeEnabled'] ?? false,
       selectedSound: json['selectedSound'] ?? 'notification_simple',
-      vibrationIntensity: json['vibrationIntensity'] ?? 2,
       notificationsEnabled: json['notificationsEnabled'] ?? true,
       showProgressBar: json['showProgressBar'] ?? true,
       showPomodoroCounter: json['showPomodoroCounter'] ?? true,
-      themeName: json['themeName'],
+      isPremium: json['isPremium'] ?? false,
+      systemSoundType: json['systemSoundType'] ?? 'alert',
     );
   }
 
@@ -127,19 +103,15 @@ class Settings {
       shortBreakDurationSeconds: 60,
       longBreakDurationSeconds: 60,
       soundEnabled: true,
-      volume: 0.7,
-      vibrationEnabled: true,
       autoStart: false,
       aiEnabled: true,
       aiSuggestionsEnabled: true,
-      preferredLanguage: 'ja',
-      darkModeEnabled: false,
       selectedSound: 'notification_simple',
-      vibrationIntensity: 2,
       notificationsEnabled: true,
       showProgressBar: true,
       showPomodoroCounter: true,
-      themeName: 'オーシャン',
+      isPremium: false,
+      systemSoundType: 'alert',
     );
   }
 
@@ -152,11 +124,7 @@ class Settings {
   bool get isValid {
     return workDuration > 0 &&
            shortBreakDuration > 0 &&
-           longBreakDuration > 0 &&
-           volume >= 0.0 &&
-           volume <= 1.0 &&
-           vibrationIntensity >= 0 &&
-           vibrationIntensity <= 3;
+           longBreakDuration > 0;
   }
 
   // デフォルト設定との差分
@@ -165,15 +133,10 @@ class Settings {
            shortBreakDurationSeconds != 60 ||
            longBreakDurationSeconds != 60 ||
            !soundEnabled ||
-           volume != 0.7 ||
-           !vibrationEnabled ||
            autoStart ||
            !aiEnabled ||
            !aiSuggestionsEnabled ||
-           preferredLanguage != 'ja' ||
-           darkModeEnabled ||
            selectedSound != 'notification_simple' ||
-           vibrationIntensity != 2 ||
            !notificationsEnabled ||
            !showProgressBar ||
            !showPomodoroCounter;

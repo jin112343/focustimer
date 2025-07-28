@@ -10,12 +10,20 @@ import 'data/models/settings.dart';
 import 'presentation/theme/app_theme.dart';
 import 'core/constants/colors.dart';
 import 'l10n/app_localizations.dart';
+import 'services/ad_service.dart';
+import 'services/audio_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
   // 起動時間最適化のための設定
   WidgetsFlutterBinding.ensureInitialized();
+
+  // AdMobの初期化
+  await AdService().initialize();
+
+  // AudioServiceの初期化
+  await AudioService().initialize();
 
   // フォントの事前読み込み
   GoogleFonts.pendingFonts([
@@ -55,14 +63,11 @@ class FocusTimerApp extends StatelessWidget {
           return MaterialApp(
             title: 'Focus Timer AI',
             theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
             navigatorKey: navigatorKey,
             debugShowCheckedModeBanner: false,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            locale: settings.preferredLanguage == 'en'
-                ? const Locale('en')
-                : const Locale('ja'),
+            locale: null, // システム言語を自動検出
             home: Container(
               color: AppColors.backgroundColor,
               child: const TimerScreen(),

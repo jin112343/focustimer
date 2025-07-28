@@ -94,54 +94,59 @@ class _CircularTimerState extends State<CircularTimer>
     final isSmallScreen = screenWidth < 400;
     final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
     
-    // 画面サイズに応じたサイズ調整
-    final radius = isSmallScreen ? 80.0 : isMediumScreen ? 100.0 : 120.0;
-    final lineWidth = isSmallScreen ? 8.0 : isMediumScreen ? 10.0 : 12.0;
-    final timeFontSize = isSmallScreen ? 32.0 : isMediumScreen ? 40.0 : 48.0;
-    final sessionTypeFontSize = isSmallScreen ? 14.0 : isMediumScreen ? 16.0 : 18.0;
-    final centerSpacing = isSmallScreen ? 4.0 : 8.0;
+    // 画面サイズに応じたサイズ調整 - より大きく
+    final radius = isSmallScreen ? 120.0 : isMediumScreen ? 150.0 : 180.0;
+    final lineWidth = isSmallScreen ? 12.0 : isMediumScreen ? 15.0 : 18.0;
+    final timeFontSize = isSmallScreen ? 48.0 : isMediumScreen ? 56.0 : 64.0;
+    final sessionTypeFontSize = isSmallScreen ? 18.0 : isMediumScreen ? 20.0 : 22.0;
+    final centerSpacing = isSmallScreen ? 8.0 : 12.0;
 
     return Column(
       children: [
-        CircularPercentIndicator(
-          radius: radius,
-          lineWidth: lineWidth,
-          percent: widget.state.progressPercentage,
-          center: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                widget.state.formattedTime,
-                style: GoogleFonts.robotoMono(
-                  fontSize: timeFontSize,
-                  fontWeight: FontWeight.bold,
-                  color: widget.state.sessionColor,
-                ),
+        AnimatedBuilder(
+          animation: _animationController!,
+          builder: (context, child) {
+            return CircularPercentIndicator(
+              radius: radius,
+              lineWidth: lineWidth,
+              percent: _animationController!.value,
+              center: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.state.formattedTime,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: timeFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: widget.state.sessionColor,
+                    ),
+                  ),
+                  SizedBox(height: centerSpacing),
+                  Text(
+                    widget.state.sessionTypeText,
+                    style: GoogleFonts.notoSans(
+                      fontSize: sessionTypeFontSize,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textColor,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: centerSpacing),
-              Text(
-                widget.state.sessionTypeText,
-                style: GoogleFonts.notoSans(
-                  fontSize: sessionTypeFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textColor,
-                ),
+              linearGradient: const LinearGradient(
+                colors: [
+                  Color(0xFF00c5fc), // 水色
+                  Color(0xFF0032ff), // 青
+                  Color(0xFFff00a6), // 赤
+                  Color(0xFF7b02b3), // 紫
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-          ),
-          linearGradient: const LinearGradient(
-            colors: [
-              Color(0xFF00c5fc), // 水色
-              Color(0xFF0032ff), // 青
-              Color(0xFFff00a6), // 赤
-              Color(0xFF7b02b3), // 紫
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          backgroundColor: Colors.white,
-          circularStrokeCap: CircularStrokeCap.round,
-          animation: false,
+              backgroundColor: Colors.white,
+              circularStrokeCap: CircularStrokeCap.round,
+              animation: false,
+            );
+          },
         ),
       ],
     );

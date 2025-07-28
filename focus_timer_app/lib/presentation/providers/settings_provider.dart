@@ -84,28 +84,6 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateVolume(double volume) async {
-    if (volume >= 0.0 && volume <= 1.0) {
-      _settings = _settings.copyWith(volume: volume);
-      await saveSettings();
-      notifyListeners();
-    }
-  }
-
-  Future<void> toggleVibration(bool enabled) async {
-    _settings = _settings.copyWith(vibrationEnabled: enabled);
-    await saveSettings();
-    notifyListeners();
-  }
-
-  Future<void> updateVibrationIntensity(int intensity) async {
-    if (intensity >= 0 && intensity <= 3) {
-      _settings = _settings.copyWith(vibrationIntensity: intensity);
-      await saveSettings();
-      notifyListeners();
-    }
-  }
-
   Future<void> toggleAutoStart(bool enabled) async {
     _settings = _settings.copyWith(autoStart: enabled);
     await saveSettings();
@@ -124,24 +102,7 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updatePreferredLanguage(String language) async {
-    _settings = _settings.copyWith(preferredLanguage: language);
-    await saveSettings();
-    notifyListeners();
-  }
 
-  Future<void> updateLanguage(String language) async {
-    _settings = _settings.copyWith(preferredLanguage: language);
-    await saveSettings();
-    // l10n: MaterialAppのlocaleが自動で切り替わります
-    notifyListeners();
-  }
-
-  Future<void> toggleDarkMode(bool enabled) async {
-    _settings = _settings.copyWith(darkModeEnabled: enabled);
-    await saveSettings();
-    notifyListeners();
-  }
 
   Future<void> updateSelectedSound(String sound) async {
     _settings = _settings.copyWith(selectedSound: sound);
@@ -173,11 +134,7 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateThemeName(String themeName) async {
-    _settings = _settings.copyWith(themeName: themeName);
-    await saveSettings();
-    notifyListeners();
-  }
+
 
   // 簡略化されたJSONパース処理
   Map<String, dynamic> _parseSettingsJson(String jsonString) {

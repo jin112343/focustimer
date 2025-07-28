@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import '../data/models/settings.dart';
@@ -9,70 +11,97 @@ class AudioService {
 
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isInitialized = false;
+  bool _isPlaying = false;
 
   Future<void> initialize() async {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      print('AudioService already initialized');
+      return;
+    }
     
     try {
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      print('Initializing AudioService...');
+      // 無限ループを止めて一回のみ再生
+      await _audioPlayer.setReleaseMode(ReleaseMode.stop);
       _isInitialized = true;
+      print('AudioService initialized successfully');
     } catch (e) {
       print('AudioService initialization failed: $e');
     }
   }
 
   Future<void> playNotificationSound(Settings settings) async {
-    // TODO: 通知音の実装（現状は何もしない）
-    // final player = AudioPlayer();
-    // await player.play(AssetSource('sounds/notification_simple.mp3'));
-    // 通知音は後で実装予定。今は何もしない。
+    try {
+      print('Playing notification sound...');
+      print('Sound enabled: ${settings.soundEnabled}');
+      print('⚠️ デバイスの音量とサイレントモードを確認してください');
+      print('📱 音量ボタンで音量を上げてください');
+      print('🔇 サイレントモードがオフになっているか確認してください');
+      
+      if (!settings.soundEnabled) {
+        print('Sound is disabled in settings');
+        return;
+      }
+      
+      // 既に再生中の場合は開始しない
+      if (_isPlaying) {
+        print('Sound is already playing, skipping...');
+        return;
+      }
+      
+      // カスタム音声ファイルを再生（一回のみ）
+      print('Playing custom sound file: Countdown06-1.mp3 (single play)');
+      await _playCustomSound();
+      
+      print('Notification sound played successfully');
+    } catch (e) {
+      print('Failed to play notification sound: $e');
+    }
+  }
+
+  Future<void> _playCustomSound() async {
+    try {
+      print('Playing custom sound file: Countdown06-1.mp3 (single play)...');
+      
+      // カスタム音声ファイルを再生（一回のみ）
+      await _audioPlayer.play(AssetSource('sounds/Countdown06-1.mp3'));
+      _isPlaying = true;
+      print('Custom sound file started playing (single play)');
+      
+      // 3.5秒後に自動停止（音声ファイルの長さに合わせて）
+      await Future.delayed(const Duration(milliseconds: 3500));
+      await stopSound();
+      
+    } catch (e) {
+      print('Failed to play custom sound file: $e');
+      print('Using fallback system sound...');
+      
+      // フォールバック: システムサウンドを使用
+      try {
+        await SystemSound.play(SystemSoundType.alert);
+        print('Fallback system sound played');
+      } catch (fallbackError) {
+        print('Fallback system sound also failed: $fallbackError');
+      }
+    }
   }
 
   Future<void> stopSound() async {
     try {
-      await _audioPlayer.stop();
+      if (_isPlaying) {
+        print('Stopping sound...');
+        await _audioPlayer.stop();
+        _isPlaying = false;
+        print('Sound stopped successfully');
+      }
     } catch (e) {
       print('Failed to stop sound: $e');
     }
   }
 
-  Future<void> vibrate(Settings settings) async {
-    if (!settings.vibrationEnabled) return;
-    if (!await Vibration.hasVibrator() ?? false) return;
+  bool get isPlaying => _isPlaying;
 
-    final intensity = settings.vibrationIntensity;
-    final pattern = _getVibrationPattern(intensity);
-    if (pattern.isEmpty) return;
-
-    // iOS/Android両対応: iOSはパターン未対応なのでdurationのみ
-    if (await Vibration.hasCustomVibrationsSupport() ?? false) {
-      await Vibration.vibrate(pattern: pattern);
-    } else {
-      // 最初のdurationだけ使う
-      await Vibration.vibrate(duration: pattern.length > 1 ? pattern[1] : 200);
-    }
-  }
-
-  List<int> _getVibrationPattern(int intensity) {
-    switch (intensity) {
-      case 0:
-        return [];
-      case 1:
-        return [0, 200]; // 短い振動
-      case 2:
-        return [0, 300, 100, 300]; // 中程度の振動
-      case 3:
-        return [0, 500, 200, 500, 200, 500]; // 強い振動
-      default:
-        return [0, 300, 100, 300];
-    }
-  }
-
-  Future<void> dispose() async {
-    try {
-      await _audioPlayer.dispose();
-    } catch (e) {
-      print('Failed to dispose AudioService: $e');
-    }
+  void dispose() {
+    _audioPlayer.dispose();
   }
 } 

@@ -45,9 +45,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get resetToDefault => 'デフォルト設定に戻す';
 
   @override
-  String get darkMode => 'ダークモード';
-
-  @override
   String get autoStart => '自動開始';
 
   @override
@@ -88,9 +85,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get noData => 'データがありません';
-
-  @override
-  String get darkModeSubtitle => '目に優しい夜間モード';
 
   @override
   String get feedbackSubtitle => 'アプリ改善のためご意見をお聞かせください';

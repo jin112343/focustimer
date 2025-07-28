@@ -32,7 +32,7 @@ class ControlButtons extends StatelessWidget {
         // メインボタン（開始/一時停止/再開）
         _buildMainButton(context, isSmallScreen, isMediumScreen),
         
-        SizedBox(height: isSmallScreen ? 12.0 : 16.0),
+        SizedBox(height: isSmallScreen ? 16.0 : 20.0),
         
         // サブボタン（リセット/スキップ）
         Row(
@@ -46,7 +46,7 @@ class ControlButtons extends StatelessWidget {
               color: AppColors.errorColor,
               isSmallScreen: isSmallScreen,
             ),
-            SizedBox(width: isSmallScreen ? 12.0 : 16.0),
+            SizedBox(width: isSmallScreen ? 16.0 : 20.0),
             _buildSubButton(
               context,
               icon: Icons.skip_next,
@@ -114,11 +114,11 @@ class ControlButtons extends StatelessWidget {
     required bool isSmallScreen,
     required bool isMediumScreen,
   }) {
-    final buttonWidth = isSmallScreen ? 160.0 : isMediumScreen ? 180.0 : 200.0;
-    final buttonHeight = isSmallScreen ? 48.0 : isMediumScreen ? 54.0 : 60.0;
-    final iconSize = isSmallScreen ? 22.0 : isMediumScreen ? 25.0 : 28.0;
-    final fontSize = isSmallScreen ? 16.0 : isMediumScreen ? 17.0 : 18.0;
-    final borderRadius = isSmallScreen ? 24.0 : isMediumScreen ? 27.0 : 30.0;
+    final buttonWidth = isSmallScreen ? 200.0 : isMediumScreen ? 240.0 : 280.0;
+    final buttonHeight = isSmallScreen ? 60.0 : isMediumScreen ? 68.0 : 76.0;
+    final iconSize = isSmallScreen ? 28.0 : isMediumScreen ? 32.0 : 36.0;
+    final fontSize = isSmallScreen ? 18.0 : isMediumScreen ? 20.0 : 22.0;
+    final borderRadius = isSmallScreen ? 30.0 : isMediumScreen ? 34.0 : 38.0;
 
     return GestureDetector(
       onTap: onTap,
@@ -148,7 +148,7 @@ class ControlButtons extends StatelessWidget {
               color: Colors.white,
               size: iconSize,
             ),
-            SizedBox(width: isSmallScreen ? 6.0 : 8.0),
+            SizedBox(width: isSmallScreen ? 8.0 : 10.0),
             Text(
               label,
               style: GoogleFonts.notoSans(
@@ -172,11 +172,11 @@ class ControlButtons extends StatelessWidget {
     required bool isSmallScreen,
   }) {
     final padding = isSmallScreen 
-      ? const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
-      : const EdgeInsets.symmetric(horizontal: 20, vertical: 12);
-    final iconSize = isSmallScreen ? 18.0 : 20.0;
-    final fontSize = isSmallScreen ? 12.0 : 14.0;
-    final spacing = isSmallScreen ? 4.0 : 6.0;
+      ? const EdgeInsets.symmetric(horizontal: 20, vertical: 14)
+      : const EdgeInsets.symmetric(horizontal: 24, vertical: 16);
+    final iconSize = isSmallScreen ? 22.0 : 24.0;
+    final fontSize = isSmallScreen ? 14.0 : 16.0;
+    final spacing = isSmallScreen ? 6.0 : 8.0;
 
     return GestureDetector(
       onTap: onTap,
@@ -184,10 +184,10 @@ class ControlButtons extends StatelessWidget {
         padding: padding,
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 20.0),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 20.0 : 24.0),
           border: Border.all(
             color: color.withValues(alpha: 0.3),
-            width: 1.5,
+            width: 2.0,
           ),
           boxShadow: [
             BoxShadow(

@@ -37,28 +37,6 @@ class SettingsScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // 外観設定
-              _buildSectionHeader(context, '🎨 外観設定'),
-              SettingTile(
-                title: AppLocalizations.of(context)!.darkMode,
-                subtitle: AppLocalizations.of(context)!.darkModeSubtitle,
-                trailing: Switch(
-                  value: settings.darkModeEnabled,
-                  onChanged: settingsProvider.toggleDarkMode,
-                  activeColor: AppColors.primaryColor,
-                ),
-              ),
-              // SettingTile(
-              //   title: 'カラーテーマ',
-              //   subtitle: settings.themeName ?? 'オーシャン',
-              //   trailing: const Icon(Icons.chevron_right),
-              //   onTap: () => _showThemeDialog(context, settingsProvider),
-              // ),
-              // TODO: カラーテーマ選択ダイアログ
-              // 複数のカラーテーマ（例：オーシャン、ダーク、パステルなど）から選択できるダイアログを表示
-              // 選択したテーマをSettingsに保存し、即時反映
-              
-              const SizedBox(height: 24),
               
               // タイマー設定
               _buildSectionHeader(context, '⏱️ タイマー設定'),
@@ -113,48 +91,14 @@ class SettingsScreen extends StatelessWidget {
               // 音声・通知設定
               _buildSectionHeader(context, '🔊 音声・通知設定'),
               SettingTile(
-                title: 'アラーム音',
-                subtitle: 'セッション完了時の音声通知',
+                title: '音声',
+                subtitle: 'セッション完了時の音声',
                 trailing: Switch(
                   value: settings.soundEnabled,
                   onChanged: settingsProvider.toggleSound,
                   activeColor: AppColors.primaryColor,
                 ),
               ),
-              if (settings.soundEnabled) ...[
-                SettingTile(
-                  title: '音量',
-                  subtitle: '${(settings.volume * 100).toInt()}%',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showVolumeSlider(context, settingsProvider),
-                ),
-                // SettingTile(
-                //   title: '音声選択',
-                //   subtitle: settings.selectedSound,
-                //   trailing: const Icon(Icons.chevron_right),
-                //   onTap: () {
-                //     // TODO: 音声選択ダイアログ
-                //     // プリセット音声（例：notification_simple, bell, chime など）から選択できるダイアログを表示
-                //     // 選択した音声をSettingsに保存し、セッション完了時に再生
-                //   },
-                // ),
-              ],
-              SettingTile(
-                title: 'バイブレーション',
-                subtitle: 'セッション完了時の振動',
-                trailing: Switch(
-                  value: settings.vibrationEnabled,
-                  onChanged: settingsProvider.toggleVibration,
-                  activeColor: AppColors.primaryColor,
-                ),
-              ),
-              if (settings.vibrationEnabled)
-                SettingTile(
-                  title: '振動強度',
-                  subtitle: _getVibrationIntensityText(settings.vibrationIntensity),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showVibrationIntensityDialog(context, settingsProvider),
-                ),
               
               const SizedBox(height: 24),
               
@@ -214,14 +158,8 @@ class SettingsScreen extends StatelessWidget {
               // その他
               _buildSectionHeader(context, 'ℹ️ その他'),
               SettingTile(
-                title: AppLocalizations.of(context)!.language,
-                subtitle: settings.preferredLanguage == 'ja' ? '日本語' : 'English',
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showLanguageDialog(context, settingsProvider),
-              ),
-              SettingTile(
                 title: AppLocalizations.of(context)!.version,
-                subtitle: AppConstants.appVersion,
+                subtitle: '1.0.0',
                 trailing: null,
               ),
               SettingTile(
@@ -265,7 +203,6 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildSectionHeader(BuildContext context, String title) {
     final l10n = AppLocalizations.of(context)!;
     final titles = {
-      '🎨 外観設定': '🎨 ' + l10n.appearance,
       '⏱️ タイマー設定': '⏱️ ' + l10n.timerSettings,
       '🔊 音声・通知設定': '🔊 ' + l10n.soundAndNotifications,
       '🤖 AI機能設定': '🤖 ' + l10n.aiFeatures,
@@ -302,124 +239,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showVolumeSlider(BuildContext context, SettingsProvider settingsProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('音量設定', style: GoogleFonts.notoSans()),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Slider(
-                  value: settingsProvider.settings.volume,
-                  min: 0.0,
-                  max: 1.0,
-                  divisions: 10,
-                  onChanged: (value) {
-                    setState(() {
-                      settingsProvider.updateVolume(value);
-                    });
-                  },
-                ),
-                Text(
-                  '${(settingsProvider.settings.volume * 100).toInt()}%',
-                  style: GoogleFonts.notoSans(fontSize: 16),
-                ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK', style: GoogleFonts.notoSans()),
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showVibrationIntensityDialog(
-    BuildContext context,
-    SettingsProvider settingsProvider,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('振動強度設定', style: GoogleFonts.notoSans()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (int i = 0; i <= 3; i++)
-              RadioListTile<int>(
-                title: Text(_getVibrationIntensityText(i)),
-                value: i,
-                groupValue: settingsProvider.settings.vibrationIntensity,
-                onChanged: (value) {
-                  if (value != null) {
-                    settingsProvider.updateVibrationIntensity(value);
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getVibrationIntensityText(int intensity) {
-    switch (intensity) {
-      case 0:
-        return 'なし';
-      case 1:
-        return '弱';
-      case 2:
-        return '中';
-      case 3:
-        return '強';
-      default:
-        return '中';
-    }
-  }
-
-  void _showLanguageDialog(BuildContext context, SettingsProvider settingsProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('言語設定', style: GoogleFonts.notoSans()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<String>(
-              title: const Text('日本語'),
-              value: 'ja',
-              groupValue: settingsProvider.settings.preferredLanguage,
-              onChanged: (value) {
-                if (value != null) {
-                  settingsProvider.updateLanguage(value);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('English'),
-              value: 'en',
-              groupValue: settingsProvider.settings.preferredLanguage,
-              onChanged: (value) {
-                if (value != null) {
-                  settingsProvider.updateLanguage(value);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showFeedbackDialog(BuildContext context) {
     showDialog(
@@ -534,30 +354,5 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showThemeDialog(BuildContext context, SettingsProvider settingsProvider) {
-    final themes = ['オーシャン', 'ダーク', 'パステル', 'ラグジュアリー'];
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('カラーテーマ選択', style: GoogleFonts.notoSans()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final theme in themes)
-              RadioListTile<String>(
-                title: Text(theme),
-                value: theme,
-                groupValue: settingsProvider.settings.themeName ?? 'オーシャン',
-                onChanged: (value) {
-                  if (value != null) {
-                    settingsProvider.updateThemeName(value);
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+
 } 

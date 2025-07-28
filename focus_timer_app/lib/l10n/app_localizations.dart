@@ -46,12 +46,12 @@ import 'app_localizations_ja.dart';
 ///
 /// iOS applications define key application metadata, including supported
 /// locales, in an Info.plist file that is built into the application bundle.
-/// To configure the locales supported by your app, you’ll need to edit this
+/// To configure the locales supported by your app, you'll need to edit this
 /// file.
 ///
-/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// First, open your project's ios/Runner.xcworkspace Xcode workspace file.
 /// Then, in the Project Navigator, open the Info.plist file under the Runner
-/// project’s Runner folder.
+/// project's Runner folder.
 ///
 /// Next, select the Information Property List item, select Add Item from the
 /// Editor menu, then select Localizations from the pop-up menu.
@@ -167,12 +167,6 @@ abstract class AppLocalizations {
   /// **'Reset to Default'**
   String get resetToDefault;
 
-  /// No description provided for @darkMode.
-  ///
-  /// In en, this message translates to:
-  /// **'Dark Mode'**
-  String get darkMode;
-
   /// No description provided for @autoStart.
   ///
   /// In en, this message translates to:
@@ -256,12 +250,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data available'**
   String get noData;
-
-  /// No description provided for @darkModeSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Eye-friendly night mode'**
-  String get darkModeSubtitle;
 
   /// No description provided for @feedbackSubtitle.
   ///

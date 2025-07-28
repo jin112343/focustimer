@@ -45,9 +45,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetToDefault => 'Reset to Default';
 
   @override
-  String get darkMode => 'Dark Mode';
-
-  @override
   String get autoStart => 'Auto Start';
 
   @override
@@ -88,9 +85,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noData => 'No data available';
-
-  @override
-  String get darkModeSubtitle => 'Eye-friendly night mode';
 
   @override
   String get feedbackSubtitle => 'We appreciate your feedback to improve the app';
