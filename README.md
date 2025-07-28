@@ -2,6 +2,13 @@
 
 次世代ポモドーロ集中タイマー with Gemini AI
 
+
+<img width="132" height="286" alt="Simulator Screenshot - iPhone 16 Pro - 2025-07-28 at 23 39 04" src="https://github.com/user-attachments/assets/4fb26f9e-1abc-4cd5-acfb-1bc5ded80685" />
+<img width="132" height="286" alt="Simulator Screenshot - iPhone 16 Pro - 2025-07-28 at 23 39 53" src="https://github.com/user-attachments/assets/c138cda4-d281-447a-ae5d-8ffc0666c3c2" />
+<img width="132" height="286" alt="Simulator Screenshot - iPhone 16 Pro - 2025-07-28 at 23 39 48" src="https://github.com/user-attachments/assets/407308bd-2a18-4ab5-8f6a-de4b5ff8f6e1" />
+
+
+
 ## 概要
 
 Focus Timer AIは、Google Gemini AIを活用した次世代のポモドーロタイマーアプリです。ユーザーの集中パターンを分析し、個人化されたアドバイスを提供することで、より効果的な時間管理をサポートします。
