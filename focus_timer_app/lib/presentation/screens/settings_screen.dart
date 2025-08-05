@@ -5,8 +5,11 @@ import '../providers/settings_provider.dart';
 import '../widgets/settings/setting_tile.dart';
 import '../widgets/settings/time_picker_dialog.dart' as custom;
 import '../widgets/settings/premium_banner.dart';
+import '../widgets/common/responsive_layout.dart';
+import '../widgets/common/responsive_card.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -14,19 +17,23 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ResponsiveScaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         title: Text(
           '⚙️ ' + AppLocalizations.of(context)!.settings,
           style: GoogleFonts.notoSans(
+            fontSize: ResponsiveUtils.getTitleFontSize(context),
             fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: AppColors.cardColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.arrow_back,
+            size: ResponsiveUtils.getResponsiveIconSize(context),
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -34,168 +41,343 @@ class SettingsScreen extends StatelessWidget {
         builder: (context, settingsProvider, child) {
           final settings = settingsProvider.settings;
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              
-              // タイマー設定
-              _buildSectionHeader(context, '⏱️ タイマー設定'),
-              SettingTile(
-                title: '作業時間',
-                subtitle: '${settings.workDurationSeconds ~/ 60}分${settings.workDurationSeconds % 60 > 0 ? ' ${settings.workDurationSeconds % 60}秒' : ''}',
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showTimePickerDialog(
-                  context,
-                  '作業時間を設定',
-                  settings.workDurationSeconds ~/ 60,
-                  settings.workDurationSeconds % 60,
-                  (min, sec) => settingsProvider.updateWorkDuration(min * 60 + sec),
-                ),
-              ),
-              SettingTile(
-                title: '短い休憩',
-                subtitle: '${settings.shortBreakDurationSeconds ~/ 60}分${settings.shortBreakDurationSeconds % 60 > 0 ? ' ${settings.shortBreakDurationSeconds % 60}秒' : ''}',
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showTimePickerDialog(
-                  context,
-                  '短い休憩時間を設定',
-                  settings.shortBreakDurationSeconds ~/ 60,
-                  settings.shortBreakDurationSeconds % 60,
-                  (min, sec) => settingsProvider.updateShortBreakDuration(min * 60 + sec),
-                ),
-              ),
-              SettingTile(
-                title: '長い休憩',
-                subtitle: '${settings.longBreakDurationSeconds ~/ 60}分${settings.longBreakDurationSeconds % 60 > 0 ? ' ${settings.longBreakDurationSeconds % 60}秒' : ''}',
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showTimePickerDialog(
-                  context,
-                  '長い休憩時間を設定',
-                  settings.longBreakDurationSeconds ~/ 60,
-                  settings.longBreakDurationSeconds % 60,
-                  (min, sec) => settingsProvider.updateLongBreakDuration(min * 60 + sec),
-                ),
-              ),
-              SettingTile(
-                title: '自動開始',
-                subtitle: '次のセッションを自動で開始',
-                trailing: Switch(
-                  value: settings.autoStart,
-                  onChanged: settingsProvider.toggleAutoStart,
-                  activeColor: AppColors.primaryColor,
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // 音声・通知設定
-              _buildSectionHeader(context, '🔊 音声・通知設定'),
-              SettingTile(
-                title: '音声',
-                subtitle: 'セッション完了時の音声',
-                trailing: Switch(
-                  value: settings.soundEnabled,
-                  onChanged: settingsProvider.toggleSound,
-                  activeColor: AppColors.primaryColor,
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // AI機能設定
-              _buildSectionHeader(context, '🤖 AI機能設定'),
-              SettingTile(
-                title: 'AI分析',
-                subtitle: '集中パターンの自動分析',
-                trailing: Switch(
-                  value: settings.aiEnabled,
-                  onChanged: settingsProvider.toggleAI,
-                  activeColor: AppColors.aiPrimaryColor,
-                ),
-              ),
-              if (settings.aiEnabled)
-                SettingTile(
-                  title: 'AI提案',
-                  subtitle: 'パーソナライズされたアドバイス',
-                  trailing: Switch(
-                    value: settings.aiSuggestionsEnabled,
-                    onChanged: settingsProvider.toggleAISuggestions,
-                    activeColor: AppColors.aiPrimaryColor,
-                  ),
-                ),
-              if (settings.aiEnabled)
-                SettingTile(
-                  title: 'データ収集',
-                  subtitle: '匿名化された使用データの収集',
-                  trailing: Switch(
-                    value: true, // 常にON
-                    onChanged: null,
-                    activeColor: AppColors.aiPrimaryColor,
-                  ),
-                ),
-              if (settings.aiEnabled)
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.aiPrimaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.aiPrimaryColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    'データは匿名化され、個人を特定できない形で処理されます',
-                    style: GoogleFonts.notoSans(
-                      fontSize: 12,
-                      color: AppColors.aiPrimaryColor,
-                    ),
-                  ),
-                ),
-              
-              const SizedBox(height: 24),
-              
-              // その他
-              _buildSectionHeader(context, 'ℹ️ その他'),
-              SettingTile(
-                title: AppLocalizations.of(context)!.version,
-                subtitle: '1.0.0',
-                trailing: null,
-              ),
-              SettingTile(
-                title: AppLocalizations.of(context)!.feedback,
-                subtitle: AppLocalizations.of(context)!.feedbackSubtitle,
-                trailing: const Icon(Icons.chevron_right),
-                // onTap: () => _showFeedbackDialog(context),
-              ),
-              // TODO: フィードバック送信
-              // フィードバック送信ボタンで、入力内容を（仮実装として）ローカル保存 or SnackBarで「送信完了」と表示
-              // 実際の送信先（メールやAPI）は後で拡張可能
-              SettingTile(
-                title: AppLocalizations.of(context)!.privacyPolicy,
-                subtitle: AppLocalizations.of(context)!.privacyPolicySubtitle,
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showPrivacyPolicy(context),
-              ),
-              
-              const SizedBox(height: 32),
-              
-              // デフォルトに戻すボタン
-              Center(
-                child: TextButton(
-                  onPressed: () => _showResetDialog(context, settingsProvider),
-                  child: Text(
-                    AppLocalizations.of(context)!.resetToDefault,
-                    style: GoogleFonts.notoSans(
-                      color: AppColors.errorColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          return ResponsiveLayout(
+            mobile: _buildMobileLayout(context, settings, settingsProvider),
+            tablet: _buildTabletLayout(context, settings, settingsProvider),
+            ipad: _buildIPadLayout(context, settings, settingsProvider),
+            desktop: _buildDesktopLayout(context, settings, settingsProvider),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return ListView(
+      padding: ResponsiveUtils.getResponsivePadding(context),
+      children: [
+        _buildSettingsContent(context, settings, settingsProvider),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return Row(
+      children: [
+        // 左側: タイマー設定と音声設定
+        Expanded(
+          flex: 1,
+          child: ListView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
+            children: [
+              _buildTimerSettings(context, settings, settingsProvider),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+              _buildSoundSettings(context, settings, settingsProvider),
+            ],
+          ),
+        ),
+        
+        // 右側: AI設定とその他
+        Expanded(
+          flex: 1,
+          child: ListView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
+            children: [
+              _buildAISettings(context, settings, settingsProvider),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+              _buildOtherSettings(context, settings, settingsProvider),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIPadLayout(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return Row(
+      children: [
+        // 左側: タイマー設定 (30%)
+        Expanded(
+          flex: 3,
+          child: ListView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
+            children: [
+              _buildTimerSettings(context, settings, settingsProvider),
+            ],
+          ),
+        ),
+        
+        // 中央: 音声・AI設定 (40%)
+        Expanded(
+          flex: 4,
+          child: ListView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
+            children: [
+              _buildSoundSettings(context, settings, settingsProvider),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+              _buildAISettings(context, settings, settingsProvider),
+            ],
+          ),
+        ),
+        
+        // 右側: その他設定 (30%)
+        Expanded(
+          flex: 3,
+          child: ListView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
+            children: [
+              _buildOtherSettings(context, settings, settingsProvider),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return Center(
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: ResponsiveUtils.getMaxContentWidth(context),
+        ),
+        child: Row(
+          children: [
+            // 左側: タイマー設定と音声設定
+            Expanded(
+              flex: 1,
+              child: ListView(
+                padding: ResponsiveUtils.getResponsivePadding(context),
+                children: [
+                  _buildTimerSettings(context, settings, settingsProvider),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                  _buildSoundSettings(context, settings, settingsProvider),
+                ],
+              ),
+            ),
+            
+            // 右側: AI設定とその他
+            Expanded(
+              flex: 1,
+              child: ListView(
+                padding: ResponsiveUtils.getResponsivePadding(context),
+                children: [
+                  _buildAISettings(context, settings, settingsProvider),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                  _buildOtherSettings(context, settings, settingsProvider),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsContent(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return Column(
+      children: [
+        _buildTimerSettings(context, settings, settingsProvider),
+        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+        _buildSoundSettings(context, settings, settingsProvider),
+        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+        _buildAISettings(context, settings, settingsProvider),
+        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+        _buildOtherSettings(context, settings, settingsProvider),
+      ],
+    );
+  }
+
+  Widget _buildTimerSettings(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return ResponsiveCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, '⏱️ タイマー設定'),
+          SettingTile(
+            title: '作業時間',
+            subtitle: '${settings.workDurationSeconds ~/ 60}分${settings.workDurationSeconds % 60 > 0 ? ' ${settings.workDurationSeconds % 60}秒' : ''}',
+            trailing: Icon(
+              Icons.chevron_right,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onTap: () => _showTimePickerDialog(
+              context,
+              '作業時間を設定',
+              settings.workDurationSeconds ~/ 60,
+              settings.workDurationSeconds % 60,
+              (min, sec) => settingsProvider.updateWorkDuration(min * 60 + sec),
+            ),
+          ),
+          SettingTile(
+            title: '短い休憩',
+            subtitle: '${settings.shortBreakDurationSeconds ~/ 60}分${settings.shortBreakDurationSeconds % 60 > 0 ? ' ${settings.shortBreakDurationSeconds % 60}秒' : ''}',
+            trailing: Icon(
+              Icons.chevron_right,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onTap: () => _showTimePickerDialog(
+              context,
+              '短い休憩時間を設定',
+              settings.shortBreakDurationSeconds ~/ 60,
+              settings.shortBreakDurationSeconds % 60,
+              (min, sec) => settingsProvider.updateShortBreakDuration(min * 60 + sec),
+            ),
+          ),
+          SettingTile(
+            title: '長い休憩',
+            subtitle: '${settings.longBreakDurationSeconds ~/ 60}分${settings.longBreakDurationSeconds % 60 > 0 ? ' ${settings.longBreakDurationSeconds % 60}秒' : ''}',
+            trailing: Icon(
+              Icons.chevron_right,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onTap: () => _showTimePickerDialog(
+              context,
+              '長い休憩時間を設定',
+              settings.longBreakDurationSeconds ~/ 60,
+              settings.longBreakDurationSeconds % 60,
+              (min, sec) => settingsProvider.updateLongBreakDuration(min * 60 + sec),
+            ),
+          ),
+          SettingTile(
+            title: '自動開始',
+            subtitle: '次のセッションを自動で開始',
+            trailing: Switch(
+              value: settings.autoStart,
+              onChanged: settingsProvider.toggleAutoStart,
+              activeColor: AppColors.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSoundSettings(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return ResponsiveCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, '🔊 音声・通知設定'),
+          SettingTile(
+            title: '音声',
+            subtitle: 'セッション完了時の音声',
+            trailing: Switch(
+              value: settings.soundEnabled,
+              onChanged: settingsProvider.toggleSound,
+              activeColor: AppColors.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAISettings(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return ResponsiveCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, '🤖 AI機能設定'),
+          SettingTile(
+            title: 'AI分析',
+            subtitle: '集中パターンの自動分析',
+            trailing: Switch(
+              value: settings.aiEnabled,
+              onChanged: settingsProvider.toggleAI,
+              activeColor: AppColors.aiPrimaryColor,
+            ),
+          ),
+          if (settings.aiEnabled)
+            SettingTile(
+              title: 'AI提案',
+              subtitle: 'パーソナライズされたアドバイス',
+              trailing: Switch(
+                value: settings.aiSuggestionsEnabled,
+                onChanged: settingsProvider.toggleAISuggestions,
+                activeColor: AppColors.aiPrimaryColor,
+              ),
+            ),
+          if (settings.aiEnabled)
+            SettingTile(
+              title: 'データ収集',
+              subtitle: '匿名化された使用データの収集',
+              trailing: Switch(
+                value: true, // 常にON
+                onChanged: null,
+                activeColor: AppColors.aiPrimaryColor,
+              ),
+            ),
+          if (settings.aiEnabled)
+            Container(
+              margin: EdgeInsets.all(ResponsiveUtils.getResponsiveSpacing(context)),
+              padding: EdgeInsets.all(ResponsiveUtils.getResponsiveSpacing(context)),
+              decoration: BoxDecoration(
+                color: AppColors.aiPrimaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context)),
+                border: Border.all(
+                  color: AppColors.aiPrimaryColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Text(
+                'データは匿名化され、個人を特定できない形で処理されます',
+                style: GoogleFonts.notoSans(
+                  fontSize: ResponsiveUtils.getCaptionFontSize(context),
+                  color: AppColors.aiPrimaryColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtherSettings(BuildContext context, Settings settings, SettingsProvider settingsProvider) {
+    return ResponsiveCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'ℹ️ その他'),
+          SettingTile(
+            title: AppLocalizations.of(context)!.version,
+            subtitle: '1.0.0',
+            trailing: null,
+          ),
+          SettingTile(
+            title: AppLocalizations.of(context)!.feedback,
+            subtitle: AppLocalizations.of(context)!.feedbackSubtitle,
+            trailing: Icon(
+              Icons.chevron_right,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            // onTap: () => _showFeedbackDialog(context),
+          ),
+          SettingTile(
+            title: AppLocalizations.of(context)!.privacyPolicy,
+            subtitle: AppLocalizations.of(context)!.privacyPolicySubtitle,
+            trailing: Icon(
+              Icons.chevron_right,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onTap: () => _showPrivacyPolicy(context),
+          ),
+          
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+          
+          // デフォルトに戻すボタン
+          Center(
+            child: TextButton(
+              onPressed: () => _showResetDialog(context, settingsProvider),
+              child: Text(
+                AppLocalizations.of(context)!.resetToDefault,
+                style: GoogleFonts.notoSans(
+                  fontSize: ResponsiveUtils.getBodyFontSize(context),
+                  color: AppColors.errorColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -209,11 +391,11 @@ class SettingsScreen extends StatelessWidget {
       'ℹ️ その他': 'ℹ️ ' + l10n.others,
     };
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
       child: Text(
         titles[title] ?? title,
         style: GoogleFonts.notoSans(
-          fontSize: 16,
+          fontSize: ResponsiveUtils.getSubtitleFontSize(context),
           fontWeight: FontWeight.bold,
           color: AppColors.textColor,
         ),
@@ -239,27 +421,32 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-
-
   void _showFeedbackDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('フィードバック送信', style: GoogleFonts.notoSans()),
+        title: Text(
+          'フィードバック送信', 
+          style: GoogleFonts.notoSans(
+            fontSize: ResponsiveUtils.getTitleFontSize(context),
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'アプリの改善のため、ご意見をお聞かせください。',
-              style: GoogleFonts.notoSans(),
+              style: GoogleFonts.notoSans(
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
+              ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
             TextField(
               maxLines: 3,
               decoration: InputDecoration(
                 hintText: 'フィードバックを入力してください...',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context)),
                 ),
               ),
             ),
@@ -268,7 +455,12 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('キャンセル', style: GoogleFonts.notoSans()),
+            child: Text(
+              'キャンセル', 
+              style: GoogleFonts.notoSans(
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -277,13 +469,20 @@ class SettingsScreen extends StatelessWidget {
                 SnackBar(
                   content: Text(
                     'フィードバックを送信しました。ありがとうございます！',
-                    style: GoogleFonts.notoSans(),
+                    style: GoogleFonts.notoSans(
+                      fontSize: ResponsiveUtils.getBodyFontSize(context),
+                    ),
                   ),
                 ),
               );
               Navigator.of(context).pop();
             },
-            child: Text('送信', style: GoogleFonts.notoSans()),
+            child: Text(
+              '送信', 
+              style: GoogleFonts.notoSans(
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
+              ),
+            ),
           ),
         ],
       ),
@@ -294,7 +493,12 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('プライバシーポリシー', style: GoogleFonts.notoSans()),
+        title: Text(
+          'プライバシーポリシー', 
+          style: GoogleFonts.notoSans(
+            fontSize: ResponsiveUtils.getTitleFontSize(context),
+          ),
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,15 +506,20 @@ class SettingsScreen extends StatelessWidget {
             children: [
               Text(
                 'データの取り扱いについて',
-                style: GoogleFonts.notoSans(fontWeight: FontWeight.bold),
+                style: GoogleFonts.notoSans(
+                  fontSize: ResponsiveUtils.getSubtitleFontSize(context),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
               Text(
                 '• アプリ内で収集されるデータは、AI分析のため匿名化して処理されます\n'
                 '• 個人を特定できる情報は収集・保存されません\n'
                 '• データはローカルデバイスに保存され、外部に送信されることはありません\n'
                 '• AI機能を使用する場合のみ、匿名化されたデータがGemini APIに送信されます',
-                style: GoogleFonts.notoSans(fontSize: 12),
+                style: GoogleFonts.notoSans(
+                  fontSize: ResponsiveUtils.getCaptionFontSize(context),
+                ),
               ),
             ],
           ),
@@ -318,7 +527,12 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('閉じる', style: GoogleFonts.notoSans()),
+            child: Text(
+              '閉じる', 
+              style: GoogleFonts.notoSans(
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
+              ),
+            ),
           ),
         ],
       ),
@@ -329,15 +543,27 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('設定をリセット', style: GoogleFonts.notoSans()),
+        title: Text(
+          '設定をリセット', 
+          style: GoogleFonts.notoSans(
+            fontSize: ResponsiveUtils.getTitleFontSize(context),
+          ),
+        ),
         content: Text(
           'すべての設定をデフォルトに戻しますか？',
-          style: GoogleFonts.notoSans(),
+          style: GoogleFonts.notoSans(
+            fontSize: ResponsiveUtils.getBodyFontSize(context),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('キャンセル', style: GoogleFonts.notoSans()),
+            child: Text(
+              'キャンセル', 
+              style: GoogleFonts.notoSans(
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -346,13 +572,14 @@ class SettingsScreen extends StatelessWidget {
             },
             child: Text(
               'リセット',
-              style: GoogleFonts.notoSans(color: AppColors.errorColor),
+              style: GoogleFonts.notoSans(
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
+                color: AppColors.errorColor,
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
-
 } 

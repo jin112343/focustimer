@@ -7,6 +7,7 @@ import '../providers/ai_provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../widgets/common/responsive_layout.dart';
+import '../widgets/common/responsive_card.dart';
 import '../../l10n/app_localizations.dart';
 
 enum AnalyticsPeriod { day, week, month }
@@ -48,6 +49,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           return ResponsiveLayout(
             mobile: _buildMobileLayout(context, timerProvider, aiProvider),
             tablet: _buildTabletLayout(context, timerProvider, aiProvider),
+            ipad: _buildIPadLayout(context, timerProvider, aiProvider),
             desktop: _buildDesktopLayout(context, timerProvider, aiProvider),
           );
         },
@@ -120,6 +122,66 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   _buildProductiveHours(),
                   _buildSessionHeatmap(),
                   _buildAIAnalysisButton(context, aiProvider, timerProvider),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIPadLayout(BuildContext context, TimerProvider timerProvider, AIProvider aiProvider) {
+    return Column(
+      children: [
+        // 期間選択タブ
+        _buildPeriodTabs(),
+        
+        Expanded(
+          child: SingleChildScrollView(
+            child: ResponsiveContainer(
+              padding: ResponsiveUtils.getResponsivePadding(context),
+              child: Row(
+                children: [
+                  // 左側: パフォーマンスとグラフ (40%)
+                  Expanded(
+                    flex: 4,
+                    child: ResponsiveColumn(
+                      children: [
+                        _buildPerformanceHeader(),
+                        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                        _buildFocusChart(),
+                        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                        _buildKeyMetrics(),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
+                  
+                  // 中央: 生産的時間とヒートマップ (35%)
+                  Expanded(
+                    flex: 3,
+                    child: ResponsiveColumn(
+                      children: [
+                        _buildProductiveHours(),
+                        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                        _buildSessionHeatmap(),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
+                  
+                  // 右側: AI分析ボタン (25%)
+                  Expanded(
+                    flex: 2,
+                    child: ResponsiveColumn(
+                      children: [
+                        _buildAIAnalysisButton(context, aiProvider, timerProvider),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -246,19 +308,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildPerformanceHeader() {
-    return Container(
-      padding: ResponsiveUtils.getResponsivePadding(context),
-      decoration: BoxDecoration(
-        gradient: AppColors.secondaryGradient,
-        borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 20, desktop: 24)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.secondaryColor.withValues(alpha: 0.3),
-            blurRadius: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 12, desktop: 16),
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return ResponsiveCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -315,19 +365,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
     final data = labels.asMap().entries.map((e) => avgMap[avgMap.keys.toList()[e.key]] ?? 0.0).toList();
     final hasData = labels.isNotEmpty;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    
+    return ResponsiveCard(
       child: hasData
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,14 +375,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               Text(
                 '集中度グラフ',
                 style: GoogleFonts.notoSans(
-                  fontSize: 16,
+                  fontSize: ResponsiveUtils.getSubtitleFontSize(context),
                   fontWeight: FontWeight.bold,
                   color: AppColors.textColor,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
               SizedBox(
-                height: 280,
+                height: ResponsiveUtils.isIPad(context) ? 320 : 280,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
@@ -352,12 +391,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         return Column(
                           children: [
                             Container(
-                              width: 32,
+                              width: ResponsiveUtils.isIPad(context) ? 40 : 32,
                               height: (data[i] * 200).clamp(0, 200),
                               color: AppColors.primaryColor.withOpacity(0.7),
                             ),
-                            const SizedBox(height: 4),
-                            Text(labels[i], style: GoogleFonts.notoSans(fontSize: 10, color: AppColors.textColor.withOpacity(0.7))),
+                            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                            Text(
+                              labels[i], 
+                              style: GoogleFonts.notoSans(
+                                fontSize: ResponsiveUtils.getCaptionFontSize(context), 
+                                color: AppColors.textColor.withOpacity(0.7)
+                              )
+                            ),
                           ],
                         );
                       }),
@@ -369,8 +414,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           )
         : Center(
             child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Text(AppLocalizations.of(context)!.noData, style: GoogleFonts.notoSans(fontSize: 16, color: AppColors.textColor.withOpacity(0.5))),
+              padding: EdgeInsets.all(ResponsiveUtils.getResponsiveSpacing(context)),
+              child: Text(
+                AppLocalizations.of(context)!.noData, 
+                style: GoogleFonts.notoSans(
+                  fontSize: ResponsiveUtils.getBodyFontSize(context), 
+                  color: AppColors.textColor.withOpacity(0.5)
+                )
+              ),
             ),
           ),
     );
@@ -391,21 +442,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final timerProvider = Provider.of<TimerProvider>(context, listen: false);
     final sessionHistory = timerProvider.state.sessionHistory;
     if (sessionHistory.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      return ResponsiveCard(
         child: Center(
-          child: Text(AppLocalizations.of(context)!.noData, style: GoogleFonts.notoSans(fontSize: 16, color: AppColors.textColor.withOpacity(0.5))),
+          child: Text(
+            AppLocalizations.of(context)!.noData, 
+            style: GoogleFonts.notoSans(
+              fontSize: ResponsiveUtils.getBodyFontSize(context), 
+              color: AppColors.textColor.withOpacity(0.5)
+            )
+          ),
         ),
       );
     }
@@ -414,19 +459,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final avgFocus = sessionHistory.isNotEmpty ? sessionHistory.map((r) => r.actualDuration).reduce((a, b) => a + b) ~/ sessionHistory.length ~/ 60 : 0;
     final avgRate = sessionHistory.isNotEmpty ? (sessionHistory.map((r) => r.completionRate).reduce((a, b) => a + b) / sessionHistory.length * 100).toInt() : 0;
     final consecutive = _calculateConsecutiveDays(sessionHistory);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    
+    return ResponsiveCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -434,12 +468,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Text(
             '🎯 重要指標',
             style: GoogleFonts.notoSans(
-              fontSize: 16,
+              fontSize: ResponsiveUtils.getSubtitleFontSize(context),
               fontWeight: FontWeight.bold,
               color: AppColors.textColor,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
           _buildMetricRow('完了セッション', '$completed/$total', total > 0 ? '${(completed / total * 100).toInt()}%' : '0%'),
           _buildMetricRow('平均集中時間', '$avgFocus分', ''),
           _buildMetricRow('完了率', '$avgRate%', ''),
@@ -451,14 +485,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildMetricRow(String label, String value, String trend) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: GoogleFonts.notoSans(
-              fontSize: 14,
+              fontSize: ResponsiveUtils.getBodyFontSize(context),
               color: AppColors.textColor.withValues(alpha: 0.8),
             ),
           ),
@@ -467,22 +501,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               Text(
                 value,
                 style: GoogleFonts.notoSans(
-                  fontSize: 14,
+                  fontSize: ResponsiveUtils.getBodyFontSize(context),
                   fontWeight: FontWeight.bold,
                   color: AppColors.textColor,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.getResponsiveSpacing(context), 
+                  vertical: ResponsiveUtils.getResponsiveSpacing(context) / 2
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.successColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context)),
                 ),
                 child: Text(
                   trend,
                   style: GoogleFonts.notoSans(
-                    fontSize: 12,
+                    fontSize: ResponsiveUtils.getCaptionFontSize(context),
                     color: AppColors.successColor,
                     fontWeight: FontWeight.w500,
                   ),
@@ -522,21 +559,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final timerProvider = Provider.of<TimerProvider>(context, listen: false);
     final sessionHistory = timerProvider.state.sessionHistory;
     if (sessionHistory.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      return ResponsiveCard(
         child: Center(
-          child: Text(AppLocalizations.of(context)!.noData, style: GoogleFonts.notoSans(fontSize: 16, color: AppColors.textColor.withOpacity(0.5))),
+          child: Text(
+            AppLocalizations.of(context)!.noData, 
+            style: GoogleFonts.notoSans(
+              fontSize: ResponsiveUtils.getBodyFontSize(context), 
+              color: AppColors.textColor.withOpacity(0.5)
+            )
+          ),
         ),
       );
     }
@@ -549,33 +580,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final hourAvg = hourMap.map((k, v) => MapEntry(k, v.isNotEmpty ? v.reduce((a, b) => a + b) / v.length : 0.0));
     final sorted = hourAvg.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    
+    return ResponsiveCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '⏰ 最も生産的な時間帯',
             style: GoogleFonts.notoSans(
-              fontSize: 16,
+              fontSize: ResponsiveUtils.getSubtitleFontSize(context),
               fontWeight: FontWeight.bold,
               color: AppColors.textColor,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
           if (sorted.isEmpty)
-            Text(AppLocalizations.of(context)!.noData, style: GoogleFonts.notoSans(fontSize: 14, color: AppColors.textColor.withOpacity(0.5))),
+            Text(
+              AppLocalizations.of(context)!.noData, 
+              style: GoogleFonts.notoSans(
+                fontSize: ResponsiveUtils.getBodyFontSize(context), 
+                color: AppColors.textColor.withOpacity(0.5)
+              )
+            ),
           ...sorted.take(3).map((e) => _buildProductiveHourRow(
             '${sorted.indexOf(e) + 1}位',
             '${e.key.toString().padLeft(2, '0')}:00-${(e.key + 2).toString().padLeft(2, '0')}:00',
@@ -588,33 +614,33 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildProductiveHourRow(String rank, String time, String percentage) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: ResponsiveUtils.isIPad(context) ? 40 : 32,
+            height: ResponsiveUtils.isIPad(context) ? 40 : 32,
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(ResponsiveUtils.isIPad(context) ? 20 : 16),
             ),
             child: Center(
               child: Text(
                 rank,
                 style: GoogleFonts.notoSans(
-                  fontSize: 12,
+                  fontSize: ResponsiveUtils.getCaptionFontSize(context),
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryColor,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
           Expanded(
             child: Text(
               time,
               style: GoogleFonts.notoSans(
-                fontSize: 14,
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
                 color: AppColors.textColor,
               ),
             ),
@@ -622,7 +648,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Text(
             percentage,
             style: GoogleFonts.notoSans(
-              fontSize: 14,
+              fontSize: ResponsiveUtils.getBodyFontSize(context),
               fontWeight: FontWeight.bold,
               color: AppColors.successColor,
             ),
@@ -636,21 +662,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final timerProvider = Provider.of<TimerProvider>(context, listen: false);
     final sessionHistory = timerProvider.state.sessionHistory;
     if (sessionHistory.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      return ResponsiveCard(
         child: Center(
-          child: Text(AppLocalizations.of(context)!.noData, style: GoogleFonts.notoSans(fontSize: 16, color: AppColors.textColor.withOpacity(0.5))),
+          child: Text(
+            AppLocalizations.of(context)!.noData, 
+            style: GoogleFonts.notoSans(
+              fontSize: ResponsiveUtils.getBodyFontSize(context), 
+              color: AppColors.textColor.withOpacity(0.5)
+            )
+          ),
         ),
       );
     }
@@ -662,63 +682,52 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       hourCount[h] = (hourCount[h] ?? 0) + 1;
     }
     final maxCount = hourCount.values.isNotEmpty ? hourCount.values.reduce((a, b) => a > b ? a : b) : 1;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    
+    return ResponsiveCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '🎨 セッション分布',
             style: GoogleFonts.notoSans(
-              fontSize: 16,
+              fontSize: ResponsiveUtils.getSubtitleFontSize(context),
               fontWeight: FontWeight.bold,
               color: AppColors.textColor,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
           Text(
             '時間別ヒートマップ',
             style: GoogleFonts.notoSans(
-              fontSize: 14,
+              fontSize: ResponsiveUtils.getBodyFontSize(context),
               color: AppColors.textColor.withOpacity(0.7),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
           Row(
             children: hours.map((hour) => Expanded(
               child: Text(
                 hour.toString(),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.notoSans(
-                  fontSize: 10,
+                  fontSize: ResponsiveUtils.getCaptionFontSize(context),
                   color: AppColors.textColor.withOpacity(0.6),
                 ),
               ),
             )).toList(),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
           Row(
             children: hours.map((hour) {
               final count = hourCount[hour] ?? 0;
               final intensity = maxCount > 0 ? (count / maxCount).clamp(0.0, 1.0) : 0.0;
               return Expanded(
                 child: Container(
-                  height: 20,
-                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                  height: ResponsiveUtils.isIPad(context) ? 24 : 20,
+                  margin: EdgeInsets.symmetric(horizontal: ResponsiveUtils.getResponsiveSpacing(context) / 4),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withOpacity(intensity),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context) / 2),
                   ),
                 ),
               );
@@ -733,18 +742,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Column(
       children: [
         _buildResetButton(context, timerProvider),
-        const SizedBox(height: 12),
+        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
               Navigator.of(context).pushNamed('/ai-insights');
             },
-            icon: const Icon(Icons.psychology),
-            label: const Text(
+            icon: Icon(
+              Icons.psychology,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            label: Text(
               '🤖 AI詳細分析を見る',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: ResponsiveUtils.getBodyFontSize(context),
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -753,9 +765,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
               side: const BorderSide(color: Colors.black12),
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context)),
               ),
             ),
           ),
@@ -767,30 +779,61 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildResetButton(BuildContext context, TimerProvider timerProvider) {
     return Center(
       child: ElevatedButton.icon(
-        icon: const Icon(Icons.delete_forever),
-        label: Text(AppLocalizations.of(context)!.resetAnalyticsData),
+        icon: Icon(
+          Icons.delete_forever,
+          size: ResponsiveUtils.getResponsiveIconSize(context),
+        ),
+        label: Text(
+          AppLocalizations.of(context)!.resetAnalyticsData,
+          style: GoogleFonts.notoSans(
+            fontSize: ResponsiveUtils.getBodyFontSize(context),
+          ),
+        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.errorColor,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveUtils.getResponsiveSpacing(context), 
+            vertical: ResponsiveUtils.getResponsiveSpacing(context)
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context)),
           ),
         ),
         onPressed: () async {
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: Text(AppLocalizations.of(context)!.resetDataConfirm),
-              content: Text(AppLocalizations.of(context)!.resetDataWarning),
+              title: Text(
+                AppLocalizations.of(context)!.resetDataConfirm,
+                style: GoogleFonts.notoSans(
+                  fontSize: ResponsiveUtils.getTitleFontSize(context),
+                ),
+              ),
+              content: Text(
+                AppLocalizations.of(context)!.resetDataWarning,
+                style: GoogleFonts.notoSans(
+                  fontSize: ResponsiveUtils.getBodyFontSize(context),
+                ),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(AppLocalizations.of(context)!.cancel),
+                  child: Text(
+                    AppLocalizations.of(context)!.cancel,
+                    style: GoogleFonts.notoSans(
+                      fontSize: ResponsiveUtils.getBodyFontSize(context),
+                    ),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text(AppLocalizations.of(context)!.reset),
+                  child: Text(
+                    AppLocalizations.of(context)!.reset,
+                    style: GoogleFonts.notoSans(
+                      fontSize: ResponsiveUtils.getBodyFontSize(context),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -800,7 +843,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             if (context.mounted) {
               setState(() {});
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.resetDataDone)),
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.resetDataDone,
+                    style: GoogleFonts.notoSans(
+                      fontSize: ResponsiveUtils.getBodyFontSize(context),
+                    ),
+                  ),
+                ),
               );
             }
           }

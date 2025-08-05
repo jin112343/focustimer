@@ -8,10 +8,12 @@ import '../widgets/timer/circular_timer.dart';
 import '../widgets/timer/control_buttons.dart';
 import '../widgets/timer/pomodoro_counter.dart';
 import '../widgets/common/accessibility_wrapper.dart';
+import '../widgets/common/responsive_layout.dart';
 import '../screens/settings_screen.dart';
 import '../screens/ai_insights_screen.dart';
 import '../screens/analytics_screen.dart';
 import '../../core/constants/colors.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../data/models/pomodoro_state.dart';
 import '../../data/models/settings.dart';
 import '../../l10n/app_localizations.dart';
@@ -26,132 +28,102 @@ class TimerScreen extends StatelessWidget {
       builder: (context, timerProvider, settingsProvider, aiProvider, child) {
         final state = timerProvider.state;
         final settings = settingsProvider.settings;
-        // より柔軟なレスポンシブ判定
-        final width = MediaQuery.of(context).size.width;
 
-        Widget layout;
-        if (width < 600) {
-          layout = _buildMobileLayout(context, state, settings, timerProvider, aiProvider);
-        } else if (width < 1200) {
-          layout = _buildTabletLayout(context, state, settings, timerProvider, aiProvider);
-        } else {
-          layout = _buildDesktopLayout(context, state, settings, timerProvider, aiProvider);
-        }
-
-        return layout;
+        return ResponsiveLayout(
+          mobile: _buildMobileLayout(context, state, settings, timerProvider, aiProvider),
+          tablet: _buildTabletLayout(context, state, settings, timerProvider, aiProvider),
+          ipad: _buildIPadLayout(context, state, settings, timerProvider, aiProvider),
+          desktop: _buildDesktopLayout(context, state, settings, timerProvider, aiProvider),
+        );
       },
     );
   }
 
   Widget _buildMobileLayout(BuildContext context, PomodoroState state, Settings settings, TimerProvider timerProvider, AIProvider aiProvider) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 600;
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final screenWidth = constraints.maxWidth;
-            final isMediumScreen = screenWidth >= 400 && screenWidth < 600;
-
-            return Consumer2<TimerProvider, SettingsProvider>(
-              builder: (context, timerProvider, settingsProvider, child) {
-                final state = timerProvider.state;
-                final settings = settingsProvider.settings;
-
-                return Column(
+        child: Column(
+          children: [
+            // ヘッダー
+            _buildHeader(context, state),
+            
+            // メインコンテンツ
+            Expanded(
+              child: Padding(
+                padding: ResponsiveUtils.getResponsivePadding(context),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // ヘッダー
-                    _buildHeader(context, state, isSmallScreen),
-                    
-                    // メインコンテンツ - Expandedで残りのスペースを使用
+                    // 円形タイマー
                     Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // 円形タイマー - 画面の40%を使用
-                            Expanded(
-                              flex: 4,
-                              child: Center(
-                                child: SizedBox(
-                                  width: isSmallScreen 
-                                    ? screenWidth * 0.8 
-                                    : isMediumScreen 
-                                      ? screenWidth * 0.7 
-                                      : screenWidth * 0.6,
-                                  height: isSmallScreen 
-                                    ? screenWidth * 0.8 
-                                    : isMediumScreen 
-                                      ? screenWidth * 0.7 
-                                      : screenWidth * 0.6,
-                                  child: CircularTimer(
-                                    state: state,
-                                    settings: settings,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            
-                            // ポモドーロカウンター - 画面の10%を使用
-                            if (settings.showPomodoroCounter)
-                              Expanded(
-                                flex: 1,
-                                child: Center(
-                                  child: PomodoroCounter(
-                                    completedPomodoros: state.completedPomodoros,
-                                    totalPomodoros: 4,
-                                  ),
-                                ),
-                              ),
-                            
-                            // AI提案カード - 画面の10%を使用（小さく調整）
-                            if (settings.aiEnabled && settings.aiSuggestionsEnabled)
-                              Expanded(
-                                flex: 1,
-                                child: Center(
-                                  child: _buildAIInsightCard(context, isSmallScreen),
-                                ),
-                              ),
-                            
-                            // コントロールボタン - 画面の20%を使用
-                            Expanded(
-                              flex: 2,
-                              child: Center(
-                                child: ControlButtons(
-                                  state: state,
-                                  onStart: timerProvider.startTimer,
-                                  onPause: timerProvider.pauseTimer,
-                                  onResume: timerProvider.resumeTimer,
-                                  onReset: timerProvider.resetTimer,
-                                  onSkip: timerProvider.skipSession,
-                                ),
-                              ),
-                            ),
-                            
-                            // ナビゲーション - 画面の10%を使用
-                            Expanded(
-                              flex: 1,
-                              child: Center(
-                                child: _buildNavigation(context, isSmallScreen),
-                              ),
-                            ),
-                          ],
+                      flex: 4,
+                      child: Center(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          height: MediaQuery.of(context).size.width * 0.8,
+                          child: CircularTimer(
+                            state: state,
+                            settings: settings,
+                          ),
                         ),
                       ),
                     ),
+                    
+                    // ポモドーロカウンター
+                    if (settings.showPomodoroCounter)
+                      Expanded(
+                        flex: 1,
+                        child: Center(
+                          child: PomodoroCounter(
+                            completedPomodoros: state.completedPomodoros,
+                            totalPomodoros: 4,
+                          ),
+                        ),
+                      ),
+                    
+                    // AI提案カード
+                    if (settings.aiEnabled && settings.aiSuggestionsEnabled)
+                      Expanded(
+                        flex: 1,
+                        child: Center(
+                          child: _buildAIInsightCard(context),
+                        ),
+                      ),
+                    
+                    // コントロールボタン
+                    Expanded(
+                      flex: 2,
+                      child: Center(
+                        child: ControlButtons(
+                          state: state,
+                          onStart: timerProvider.startTimer,
+                          onPause: timerProvider.pauseTimer,
+                          onResume: timerProvider.resumeTimer,
+                          onReset: timerProvider.resetTimer,
+                          onSkip: timerProvider.skipSession,
+                        ),
+                      ),
+                    ),
+                    
+                    // ナビゲーション
+                    Expanded(
+                      flex: 1,
+                      child: Center(
+                        child: _buildNavigation(context),
+                      ),
+                    ),
                   ],
-                );
-              },
-            );
-          },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildTabletLayout(BuildContext context, PomodoroState state, Settings settings, TimerProvider timerProvider, AIProvider aiProvider) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 600;
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
@@ -161,7 +133,7 @@ class TimerScreen extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -211,25 +183,25 @@ class TimerScreen extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // ヘッダー
-                    _buildHeader(context, state, isSmallScreen),
+                    _buildHeader(context, state),
 
-                    const SizedBox(height: 16),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
 
                     // AI提案カード
                     if (settings.aiEnabled && settings.aiSuggestionsEnabled) ...[
-                      _buildAIInsightCard(context, isSmallScreen),
-                      const SizedBox(height: 16),
+                      _buildAIInsightCard(context),
+                      SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
                     ],
 
                     // ナビゲーション
                     Expanded(
                       child: Center(
-                        child: _buildNavigation(context, isSmallScreen),
+                        child: _buildNavigation(context),
                       ),
                     ),
                   ],
@@ -242,8 +214,112 @@ class TimerScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildIPadLayout(BuildContext context, PomodoroState state, Settings settings, TimerProvider timerProvider, AIProvider aiProvider) {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
+      body: SafeArea(
+        child: IPadLayout(
+          child: Row(
+            children: [
+              // 左側: タイマーとコントロール (40%)
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: ResponsiveUtils.getResponsivePadding(context),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // 円形タイマー
+                      Expanded(
+                        flex: 4,
+                        child: Center(
+                          child: SizedBox(
+                            width: ResponsiveUtils.getContentWidth(context) * 0.6,
+                            height: ResponsiveUtils.getContentWidth(context) * 0.6,
+                            child: AccessibilityWrapper(
+                              label: AppLocalizations.of(context)!.timerDisplay(state.remainingMinutes, state.remainingSecondsDisplay.toString().padLeft(2, '0')),
+                              hint: AppLocalizations.of(context)!.currentSessionRemainingTime,
+                              child: CircularTimer(
+                                state: state,
+                                settings: settings,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // ポモドーロカウンター
+                      if (settings.showPomodoroCounter)
+                        Container(
+                          height: 60,
+                          child: PomodoroCounter(
+                            completedPomodoros: state.completedPomodoros,
+                            totalPomodoros: 4,
+                          ),
+                        ),
+
+                      // コントロールボタン
+                      Container(
+                        height: 120,
+                        child: ControlButtons(
+                          state: state,
+                          onStart: timerProvider.startTimer,
+                          onPause: timerProvider.pauseTimer,
+                          onResume: timerProvider.resumeTimer,
+                          onReset: timerProvider.resetTimer,
+                          onSkip: timerProvider.skipSession,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 中央: AI提案とヘッダー (35%)
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: ResponsiveUtils.getResponsivePadding(context),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // ヘッダー
+                      _buildHeader(context, state),
+
+                      SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+
+                      // AI提案カード
+                      if (settings.aiEnabled && settings.aiSuggestionsEnabled)
+                        Expanded(
+                          child: _buildAIInsightCard(context),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 右側: ナビゲーション (25%)
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: ResponsiveUtils.getResponsivePadding(context),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // ナビゲーション
+                      _buildNavigation(context),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDesktopLayout(BuildContext context, PomodoroState state, Settings settings, TimerProvider timerProvider, AIProvider aiProvider) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 600;
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
@@ -253,7 +329,7 @@ class TimerScreen extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -303,18 +379,18 @@ class TimerScreen extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // ヘッダー
-                    _buildHeader(context, state, isSmallScreen),
+                    _buildHeader(context, state),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
 
                     // AI提案カード
                     if (settings.aiEnabled && settings.aiSuggestionsEnabled)
-                      _buildAIInsightCard(context, isSmallScreen),
+                      _buildAIInsightCard(context),
                   ],
                 ),
               ),
@@ -324,12 +400,12 @@ class TimerScreen extends StatelessWidget {
             Expanded(
               flex: 1,
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // ナビゲーション
-                    _buildNavigation(context, isSmallScreen),
+                    _buildNavigation(context),
                   ],
                 ),
               ),
@@ -340,40 +416,27 @@ class TimerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, PomodoroState state, bool isSmallScreen) {
+  Widget _buildHeader(BuildContext context, PomodoroState state) {
     return Consumer<SettingsProvider>(
       builder: (context, settingsProvider, child) {
         final settings = settingsProvider.settings;
         
-        print('Building header...');
-        print('Is premium: ${settings.isPremium}');
-        
         // プレミアム版の場合は広告を非表示
         if (settings.isPremium) {
-          print('Premium user, hiding ad');
           return const SizedBox.shrink();
         }
 
         return FutureBuilder(
           future: AdService().loadBannerAd(),
           builder: (context, snapshot) {
-            print('FutureBuilder state: ${snapshot.connectionState}');
-            if (snapshot.hasError) {
-              print('FutureBuilder error: ${snapshot.error}');
-            }
-            
             final adWidget = AdService().getBannerAdWidget();
-            print('Ad widget: ${adWidget != null ? 'available' : 'null'}');
             
             if (adWidget != null) {
-              print('Returning ad widget');
               return Container(
                 width: double.infinity,
                 child: adWidget,
               );
             } else {
-              print('No ad widget available, showing empty space');
-              // 広告が読み込めない場合は何も表示しない
               return const SizedBox.shrink();
             }
           },
@@ -382,27 +445,13 @@ class TimerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAIInsightCard(BuildContext context, bool isSmallScreen) {
+  Widget _buildAIInsightCard(BuildContext context) {
     return Consumer<AIProvider>(
       builder: (context, aiProvider, child) {
         // 個人に合わせたAI提案を生成
         String personalizedSuggestion = _generatePersonalizedSuggestion(aiProvider);
         
-        return Container(
-          width: double.infinity,
-          height: isSmallScreen ? 80 : 100, // 固定の高さを設定
-          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-          decoration: BoxDecoration(
-            color: AppColors.cardColor,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+        return ResponsiveCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -411,31 +460,31 @@ class TimerScreen extends StatelessWidget {
                   Icon(
                     Icons.lightbulb_outline,
                     color: AppColors.aiPrimaryColor,
-                    size: isSmallScreen ? 18 : 20,
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
                   ),
-                  SizedBox(width: isSmallScreen ? 6 : 8),
+                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
                   Text(
                     'AI提案',
                     style: GoogleFonts.notoSans(
-                      fontSize: isSmallScreen ? 13 : 15,
+                      fontSize: ResponsiveUtils.getSubtitleFontSize(context),
                       fontWeight: FontWeight.bold,
                       color: AppColors.textColor,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: isSmallScreen ? 6 : 8),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
               // スクロール可能なテキストエリア
               Expanded(
                 child: Scrollbar(
-                  thumbVisibility: true, // スクロールバーを常に表示
-                  thickness: 4, // スクロールバーの太さ
-                  radius: const Radius.circular(2), // スクロールバーの角丸
+                  thumbVisibility: true,
+                  thickness: 4,
+                  radius: const Radius.circular(2),
                   child: SingleChildScrollView(
                     child: Text(
                       personalizedSuggestion,
                       style: GoogleFonts.notoSans(
-                        fontSize: isSmallScreen ? 13 : 15,
+                        fontSize: ResponsiveUtils.getBodyFontSize(context),
                         color: AppColors.textColor.withValues(alpha: 0.8),
                         height: 1.2,
                       ),
@@ -490,7 +539,7 @@ class TimerScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildNavigation(BuildContext context, bool isSmallScreen) {
+  Widget _buildNavigation(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -498,7 +547,6 @@ class TimerScreen extends StatelessWidget {
           context,
           icon: Icons.bar_chart,
           label: '統計',
-          isSmallScreen: isSmallScreen,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -511,7 +559,6 @@ class TimerScreen extends StatelessWidget {
           context,
           icon: Icons.settings,
           label: '設定',
-          isSmallScreen: isSmallScreen,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -524,7 +571,6 @@ class TimerScreen extends StatelessWidget {
           context,
           icon: Icons.psychology,
           label: 'AI',
-          isSmallScreen: isSmallScreen,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -541,39 +587,25 @@ class TimerScreen extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
-    required bool isSmallScreen,
     required VoidCallback onTap,
   }) {
+    final buttonSize = ResponsiveUtils.getResponsiveButtonSize(context);
+    
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: isSmallScreen ? 16 : 20, 
-          vertical: isSmallScreen ? 12 : 16
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: ResponsiveCard(
         child: Column(
           children: [
             Icon(
               icon,
               color: AppColors.primaryColor,
-              size: isSmallScreen ? 28 : 32,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
             ),
-            SizedBox(height: isSmallScreen ? 4 : 6),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
             Text(
               label,
               style: GoogleFonts.notoSans(
-                fontSize: isSmallScreen ? 12 : 14,
+                fontSize: ResponsiveUtils.getCaptionFontSize(context),
                 fontWeight: FontWeight.w500,
                 color: AppColors.textColor,
               ),

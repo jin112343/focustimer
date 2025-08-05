@@ -4,12 +4,14 @@ import '../../../core/utils/responsive_utils.dart';
 class ResponsiveLayout extends StatelessWidget {
   final Widget mobile;
   final Widget? tablet;
+  final Widget? ipad;
   final Widget? desktop;
 
   const ResponsiveLayout({
     super.key,
     required this.mobile,
     this.tablet,
+    this.ipad,
     this.desktop,
   });
 
@@ -17,10 +19,12 @@ class ResponsiveLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (ResponsiveUtils.isDesktop(context)) {
-          return desktop ?? tablet ?? mobile;
+        if (ResponsiveUtils.isIPad(context)) {
+          return ipad ?? tablet ?? mobile;
+        } else if (ResponsiveUtils.isDesktop(context)) {
+          return desktop ?? ipad ?? tablet ?? mobile;
         } else if (ResponsiveUtils.isTablet(context)) {
-          return tablet ?? mobile;
+          return tablet ?? ipad ?? mobile;
         } else {
           return mobile;
         }
@@ -50,10 +54,10 @@ class ResponsiveContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width ?? ResponsiveUtils.getMaxContentWidth(context),
+      width: width ?? ResponsiveUtils.getContentWidth(context),
       height: height,
       padding: padding ?? ResponsiveUtils.getResponsivePadding(context),
-      margin: margin,
+      margin: margin ?? ResponsiveUtils.getContentMargin(context),
       decoration: decoration,
       child: child,
     );
@@ -293,6 +297,80 @@ class ResponsiveFlexible extends StatelessWidget {
     return Flexible(
       flex: flex,
       fit: fit,
+      child: child,
+    );
+  }
+}
+
+// New iPad-specific layout widget
+class IPadLayout extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets? padding;
+  final EdgeInsets? margin;
+  final double? maxWidth;
+
+  const IPadLayout({
+    super.key,
+    required this.child,
+    this.padding,
+    this.margin,
+    this.maxWidth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!ResponsiveUtils.isIPad(context)) {
+      return child;
+    }
+
+    return Center(
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: maxWidth ?? ResponsiveUtils.getMaxContentWidth(context),
+        ),
+        padding: padding ?? ResponsiveUtils.getResponsivePadding(context),
+        margin: margin ?? ResponsiveUtils.getContentMargin(context),
+        child: child,
+      ),
+    );
+  }
+}
+
+// New responsive card widget for better iPad support
+class ResponsiveCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets? padding;
+  final EdgeInsets? margin;
+  final double? elevation;
+  final Color? backgroundColor;
+  final BorderRadius? borderRadius;
+
+  const ResponsiveCard({
+    super.key,
+    required this.child,
+    this.padding,
+    this.margin,
+    this.elevation,
+    this.backgroundColor,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin ?? EdgeInsets.all(ResponsiveUtils.getResponsiveSpacing(context)),
+      padding: padding ?? EdgeInsets.all(ResponsiveUtils.getResponsiveSpacing(context)),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? Theme.of(context).cardColor,
+        borderRadius: borderRadius ?? BorderRadius.circular(ResponsiveUtils.getResponsiveSpacing(context)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: elevation ?? ResponsiveUtils.getResponsiveSpacing(context),
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: child,
     );
   }

@@ -4,9 +4,11 @@ import '../../data/models/pomodoro_state.dart';
 import '../../data/models/focus_pattern.dart';
 
 class ResponsiveUtils {
+  // Updated breakpoints for better iPad support
   static const double _mobileBreakpoint = 600;
   static const double _tabletBreakpoint = 900;
   static const double _desktopBreakpoint = 1200;
+  static const double _ipadBreakpoint = 768; // iPad-specific breakpoint
 
   // デバイスタイプの判定
   static bool isMobile(BuildContext context) {
@@ -22,6 +24,14 @@ class ResponsiveUtils {
     return MediaQuery.of(context).size.width >= _tabletBreakpoint;
   }
 
+  // iPad-specific detection
+  static bool isIPad(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    // iPad typically has width >= 768 and aspect ratio close to 4:3
+    return width >= _ipadBreakpoint && (width / height).abs() < 1.5;
+  }
+
   static bool isLandscape(BuildContext context) {
     return MediaQuery.of(context).orientation == Orientation.landscape;
   }
@@ -32,6 +42,9 @@ class ResponsiveUtils {
 
   // デバイスタイプの取得
   static DeviceType getDeviceType(BuildContext context) {
+    if (isIPad(context)) {
+      return DeviceType.ipad;
+    }
     final width = MediaQuery.of(context).size.width;
     if (width < _mobileBreakpoint) {
       return DeviceType.mobile;
@@ -55,9 +68,11 @@ class ResponsiveUtils {
     return MediaQuery.of(context).size.height;
   }
 
-  // パディングの調整
+  // パディングの調整 - iPad対応を強化
   static EdgeInsets getResponsivePadding(BuildContext context) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return const EdgeInsets.all(32.0);
+    } else if (isMobile(context)) {
       return const EdgeInsets.all(16.0);
     } else if (isTablet(context)) {
       return const EdgeInsets.all(24.0);
@@ -67,7 +82,9 @@ class ResponsiveUtils {
   }
 
   static EdgeInsets getHorizontalPadding(BuildContext context) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return const EdgeInsets.symmetric(horizontal: 32.0);
+    } else if (isMobile(context)) {
       return const EdgeInsets.symmetric(horizontal: 16.0);
     } else if (isTablet(context)) {
       return const EdgeInsets.symmetric(horizontal: 24.0);
@@ -76,13 +93,16 @@ class ResponsiveUtils {
     }
   }
 
-  // フォントサイズの調整
+  // フォントサイズの調整 - iPad対応
   static double getResponsiveFontSize(BuildContext context, {
     double mobile = 14.0,
     double tablet = 16.0,
+    double ipad = 18.0,
     double desktop = 18.0,
   }) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return ipad;
+    } else if (isMobile(context)) {
       return mobile;
     } else if (isTablet(context)) {
       return tablet;
@@ -96,6 +116,7 @@ class ResponsiveUtils {
       context,
       mobile: 20.0,
       tablet: 24.0,
+      ipad: 28.0,
       desktop: 28.0,
     );
   }
@@ -105,6 +126,7 @@ class ResponsiveUtils {
       context,
       mobile: 16.0,
       tablet: 18.0,
+      ipad: 20.0,
       desktop: 20.0,
     );
   }
@@ -114,6 +136,7 @@ class ResponsiveUtils {
       context,
       mobile: 14.0,
       tablet: 16.0,
+      ipad: 18.0,
       desktop: 18.0,
     );
   }
@@ -123,17 +146,21 @@ class ResponsiveUtils {
       context,
       mobile: 12.0,
       tablet: 14.0,
+      ipad: 16.0,
       desktop: 16.0,
     );
   }
 
-  // アイコンサイズの調整
+  // アイコンサイズの調整 - iPad対応
   static double getResponsiveIconSize(BuildContext context, {
     double mobile = 24.0,
     double tablet = 28.0,
+    double ipad = 32.0,
     double desktop = 32.0,
   }) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return ipad;
+    } else if (isMobile(context)) {
       return mobile;
     } else if (isTablet(context)) {
       return tablet;
@@ -142,13 +169,16 @@ class ResponsiveUtils {
     }
   }
 
-  // カードの高さ調整
+  // カードの高さ調整 - iPad対応
   static double getResponsiveCardHeight(BuildContext context, {
     double mobile = 120.0,
     double tablet = 140.0,
+    double ipad = 160.0,
     double desktop = 160.0,
   }) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return ipad;
+    } else if (isMobile(context)) {
       return mobile;
     } else if (isTablet(context)) {
       return tablet;
@@ -157,9 +187,11 @@ class ResponsiveUtils {
     }
   }
 
-  // グリッドの列数調整
+  // グリッドの列数調整 - iPad対応
   static int getResponsiveGridColumns(BuildContext context) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return 3; // iPadでは3列でより効率的に
+    } else if (isMobile(context)) {
       return 1;
     } else if (isTablet(context)) {
       return 2;
@@ -168,9 +200,11 @@ class ResponsiveUtils {
     }
   }
 
-  // アスペクト比の調整
+  // アスペクト比の調整 - iPad対応
   static double getResponsiveAspectRatio(BuildContext context) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return 1.3; // iPadに最適化
+    } else if (isMobile(context)) {
       return 1.0;
     } else if (isTablet(context)) {
       return 1.2;
@@ -179,9 +213,11 @@ class ResponsiveUtils {
     }
   }
 
-  // ボタンサイズの調整
+  // ボタンサイズの調整 - iPad対応
   static Size getResponsiveButtonSize(BuildContext context) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return const Size(160, 64); // iPadではより大きなボタン
+    } else if (isMobile(context)) {
       return const Size(120, 48);
     } else if (isTablet(context)) {
       return const Size(140, 56);
@@ -190,13 +226,16 @@ class ResponsiveUtils {
     }
   }
 
-  // スペーシングの調整
+  // スペーシングの調整 - iPad対応
   static double getResponsiveSpacing(BuildContext context, {
     double mobile = 8.0,
     double tablet = 12.0,
+    double ipad = 16.0,
     double desktop = 16.0,
   }) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return ipad;
+    } else if (isMobile(context)) {
       return mobile;
     } else if (isTablet(context)) {
       return tablet;
@@ -205,9 +244,11 @@ class ResponsiveUtils {
     }
   }
 
-  // 最大幅の設定
+  // 最大幅の設定 - iPad対応
   static double getMaxContentWidth(BuildContext context) {
-    if (isMobile(context)) {
+    if (isIPad(context)) {
+      return 800; // iPadではより広いコンテンツ幅
+    } else if (isMobile(context)) {
       return double.infinity;
     } else if (isTablet(context)) {
       return 600;
@@ -231,11 +272,45 @@ class ResponsiveUtils {
       right: mediaQuery.padding.right,
     );
   }
+
+  // iPad用の特別なレイアウト判定
+  static bool shouldUseIPadLayout(BuildContext context) {
+    return isIPad(context);
+  }
+
+  // コンテンツ幅の取得（iPad対応）
+  static double getContentWidth(BuildContext context) {
+    final screenWidth = getScreenWidth(context);
+    if (isIPad(context)) {
+      // iPadでは画面幅の80%を使用
+      return screenWidth * 0.8;
+    } else if (isMobile(context)) {
+      return screenWidth;
+    } else if (isTablet(context)) {
+      return screenWidth * 0.9;
+    } else {
+      return screenWidth * 0.8;
+    }
+  }
+
+  // コンテンツの中央配置用マージン
+  static EdgeInsets getContentMargin(BuildContext context) {
+    if (isIPad(context)) {
+      return const EdgeInsets.symmetric(horizontal: 64.0);
+    } else if (isMobile(context)) {
+      return EdgeInsets.zero;
+    } else if (isTablet(context)) {
+      return const EdgeInsets.symmetric(horizontal: 32.0);
+    } else {
+      return const EdgeInsets.symmetric(horizontal: 64.0);
+    }
+  }
 }
 
 enum DeviceType {
   mobile,
   tablet,
+  ipad,
   desktop,
 }
 
