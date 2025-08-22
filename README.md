@@ -2,7 +2,7 @@
 
 次世代ポモドーロ集中タイマー with Gemini AI
 
-#ios
+# ios
 https://apps.apple.com/jp/app/focus-timer-ai/id6748850668
 
 
