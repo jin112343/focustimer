@@ -2,6 +2,10 @@
 
 次世代ポモドーロ集中タイマー with Gemini AI
 
+#ios
+https://apps.apple.com/jp/app/focus-timer-ai/id6748850668
+
+
 
 <img width="132" height="286" alt="Simulator Screenshot - iPhone 16 Pro - 2025-07-28 at 23 39 04" src="https://github.com/user-attachments/assets/4fb26f9e-1abc-4cd5-acfb-1bc5ded80685" />
 <img width="132" height="286" alt="Simulator Screenshot - iPhone 16 Pro - 2025-07-28 at 23 39 53" src="https://github.com/user-attachments/assets/c138cda4-d281-447a-ae5d-8ffc0666c3c2" />
