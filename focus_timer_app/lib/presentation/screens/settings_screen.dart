@@ -1,3 +1,4 @@
+import '../../data/models/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +7,6 @@ import '../widgets/settings/setting_tile.dart';
 import '../widgets/settings/time_picker_dialog.dart' as custom;
 import '../widgets/settings/premium_banner.dart';
 import '../widgets/common/responsive_layout.dart';
-import '../widgets/common/responsive_card.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/responsive_utils.dart';

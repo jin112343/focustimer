@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: '>=3.13.7 <4.0.0'
+  flutter: '>=3.47.8'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -49,10 +50,9 @@ dependencies:
   percent_indicator: ^4.2.3
   fl_chart: ^0.66.0
   lottie: ^2.7.0
-  google_fonts: ^6.1.0
+  google_fonts: ^8.0.0
   
   # AI・API関連
-  google_generative_ai: ^0.2.2
   http: ^1.1.0
   dio: ^5.4.0
   flutter_dotenv: ^5.1.0
@@ -100,8 +100,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/
-    - assets/animations/
     - assets/sounds/
     - assets/icon/
     - assets/sounds/Countdown06-1.mp3
