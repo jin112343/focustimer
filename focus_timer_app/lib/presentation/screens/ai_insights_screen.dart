@@ -7,7 +7,6 @@ import '../widgets/ai/ai_insight_card.dart';
 import '../widgets/ai/productivity_score.dart';
 import '../widgets/ai/focus_chart.dart';
 import '../widgets/common/responsive_layout.dart';
-import '../widgets/common/responsive_card.dart';
 import '../../core/constants/colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../data/models/ai_analysis.dart';

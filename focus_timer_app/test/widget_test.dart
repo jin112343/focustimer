@@ -12,7 +12,11 @@ import 'package:focus_timer_app/main.dart';
 
 void main() {
   testWidgets('Focus Timer App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    // Build at a phone viewport. Compact tablet layout is tracked separately.
     await tester.pumpWidget(const FocusTimerApp());
 
     // Verify that the app starts without crashing

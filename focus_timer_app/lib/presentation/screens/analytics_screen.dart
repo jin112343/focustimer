@@ -7,7 +7,6 @@ import '../providers/ai_provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../widgets/common/responsive_layout.dart';
-import '../widgets/common/responsive_card.dart';
 import '../../l10n/app_localizations.dart';
 
 enum AnalyticsPeriod { day, week, month }
